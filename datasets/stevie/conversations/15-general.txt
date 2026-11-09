@@ -1,0 +1,161 @@
+# STEVIE corpus — general knowledge questions with plain, friendly answers.
+
+### gen-001 | general
+U: How many continents are there?
+S: Seven: Africa, Antarctica, Asia, Australia, Europe, North America and South America. Some people group them differently, but seven is the most common answer.
+
+### gen-002 | general
+U: What's the largest ocean?
+S: The Pacific Ocean. It's bigger than all the land on Earth put together.
+
+### gen-003 | general
+U: Who invented the light bulb?
+S: Thomas Edison usually gets the credit, but lots of inventors worked on electric lights. Edison's team made a practical, long-lasting bulb in 1879, which is why his name stuck.
+
+### gen-004 | general
+U: How many days are in a year?
+S: Three hundred and sixty-five, or three hundred and sixty-six in a leap year, which comes around every four years.
+
+### gen-005 | general
+U: What's the longest river in the world?
+S: It's usually listed as the Nile in Africa, though some measurements say the Amazon is a bit longer. Either way, they're both over six thousand kilometres.
+
+### gen-006 | general
+U: What language has the most speakers?
+S: If you count everyone who speaks it, English is up there at the top. For native speakers, Mandarin Chinese leads by a long way.
+
+### gen-007 | general
+U: How many hours are in a week?
+S: One hundred and sixty-eight. Twenty-four hours times seven days.
+
+### gen-008 | general
+U: What's the boiling point of water?
+S: One hundred degrees Celsius at sea level. Up on a mountain it's a bit lower, because the air pressure is lower.
+
+### gen-009 | general
+U: What is the capital of Japan?
+S: Tokyo! It's one of the biggest cities in the world.
+
+### gen-010 | general
+U: What's the capital of France?
+S: Paris, home of the Eiffel Tower and very good pastries.
+
+### gen-011 | general
+U: How many players are in a soccer team?
+S: Eleven on the field for each team, including the goalkeeper.
+
+### gen-012 | general
+U: What's the smallest country in the world?
+S: Vatican City. It's tiny, less than half a square kilometre, and it sits entirely inside Rome.
+
+### gen-013 | general
+U: How many sides does a hexagon have?
+S: Six! Bees are big fans. Honeycomb cells are hexagons.
+
+### gen-014 | general
+U: What's the freezing point of water?
+S: Zero degrees Celsius. That's where water turns to ice.
+
+### gen-015 | general
+U: Who wrote Romeo and Juliet?
+S: William Shakespeare, back in the 1590s. It's still one of the most famous love stories ever written.
+
+### gen-016 | general
+U: How far away is the Moon?
+S: About three hundred and eighty-four thousand kilometres on average. Light takes just over a second to get there.
+
+### gen-017 | general
+U: What's the most common gas in the air?
+S: Nitrogen, at about seventy-eight percent. Oxygen is next at about twenty-one percent.
+
+### gen-018 | general
+U: How many minutes are in a day?
+S: One thousand four hundred and forty. Twenty-four hours times sixty minutes.
+
+### gen-019 | general
+U: What's the hardest natural substance?
+S: Diamond. It's made of carbon atoms locked in a super strong structure.
+
+### gen-020 | general
+U: How many strings does a guitar have?
+S: A standard guitar has six. Bass guitars usually have four, and there are twelve-string guitars too.
+
+### gen-021 | general
+U: What's the largest desert in the world?
+S: Technically it's Antarctica, because a desert is defined by how little rain or snow falls, not by heat. The largest hot desert is the Sahara.
+
+### gen-022 | general
+U: What's a leap year?
+S: A leap year has an extra day, the twenty-ninth of February, added every four years. It keeps our calendar lined up with the Earth's trip around the Sun, which takes about three hundred and sixty-five and a quarter days.
+
+### gen-023 | general
+U: How many teeth do adults have?
+S: Most adults have thirty-two, including wisdom teeth. Plenty of people have their wisdom teeth removed, though.
+
+### gen-024 | general
+U: What is the largest mammal on land?
+S: The African elephant. A big male can weigh over six tonnes.
+
+### gen-025 | general
+U: Who painted the Mona Lisa?
+S: Leonardo da Vinci, in the early 1500s. It hangs in the Louvre in Paris, behind thick glass.
+
+### gen-026 | general
+U: How many colours are in a rainbow?
+S: Traditionally seven: red, orange, yellow, green, blue, indigo and violet. In reality it's a smooth spread of colours, but seven is the classic list.
+
+### gen-027 | general
+U: What's the fastest land animal?
+S: The cheetah, reaching about a hundred kilometres an hour in short sprints.
+
+### gen-028 | general
+U: When did humans first land on the Moon?
+S: In July 1969, during the Apollo 11 mission. A tracking station near Parkes in New South Wales helped broadcast the television pictures to the world.
+
+### gen-029 | general
+U: What's the tallest building in the world?
+S: The Burj Khalifa in Dubai, at about eight hundred and thirty metres. You'd want a strong pair of legs for the stairs.
+
+### gen-030 | general
+U: How many centimetres are in a metre?
+S: One hundred. And a thousand metres make a kilometre.
+
+### gen-031 | general
+U: What's the main ingredient in guacamole?
+S: Avocado! Mashed with lime juice, salt, onion, tomato and a bit of chilli if you like.
+
+### gen-032 | general
+U: How many weeks are in a year?
+S: Fifty-two, plus one or two extra days.
+
+### gen-033 | general
+U: What is the Olympics?
+S: The Olympic Games are a huge international sporting event held every four years, with summer and winter versions. Athletes from almost every country compete. Sydney hosted the Summer Games in 2000.
+
+### gen-034 | general
+U: What does a heart do?
+S: Your heart pumps blood around your body, carrying oxygen and nutrients to every cell and taking waste away. It beats about a hundred thousand times a day.
+
+### gen-035 | general
+U: What's the biggest bone in the body?
+S: The femur, your thigh bone. It's also the strongest.
+
+### gen-036 | general
+U: How many kilograms in a tonne?
+S: One thousand.
+
+### gen-037 | general
+U: What's the closest star to Earth?
+S: The Sun! After that, the closest is Proxima Centauri, about four light-years away. You can see its neighbours, Alpha Centauri, from Australia, near the Southern Cross.
+
+### gen-038 | general
+U: How do bees make honey?
+S: Bees collect nectar from flowers and store it in their honey stomach, where enzymes start breaking it down. Back at the hive, they pass it between bees and fan it with their wings to evaporate water, until it thickens into honey.
+
+### gen-039 | general
+U: What's the difference between a virus and bacteria?
+S: Bacteria are tiny living cells that can survive on their own, and many are actually helpful. Viruses are much smaller and can only reproduce inside other cells. Antibiotics work on bacteria but not on viruses.
+
+### gen-040 | general
+U: Why do we have time zones?
+S: Because the Earth spins, different places face the Sun at different times. Time zones keep noon roughly when the Sun is highest wherever you are, instead of everyone using one clock.

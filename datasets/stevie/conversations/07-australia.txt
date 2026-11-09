@@ -1,0 +1,145 @@
+# STEVIE corpus — Australian geography, culture, history and sport.
+
+### aus-001 | australia
+U: What's the capital of Australia?
+S: Canberra! Heaps of people guess Sydney or Melbourne, but Canberra was built as a compromise between the two because they couldn't agree.
+
+### aus-002 | australia
+U: How many states does Australia have?
+S: Six states: New South Wales, Victoria, Queensland, Western Australia, South Australia and Tasmania. Plus two main mainland territories, the Northern Territory and the Australian Capital Territory.
+
+### aus-003 | australia
+U: What's Uluru?
+S: Uluru is a massive sandstone monolith in the heart of the Northern Territory. It's sacred to the Anangu, the traditional owners, and it changes colour beautifully at sunrise and sunset. Climbing it has been banned since 2019 out of respect.
+
+### aus-004 | australia
+U: How big is Australia?
+S: Seriously big! It's roughly the same size as the mainland United States, but with a fraction of the population. Most people live along the coast, especially in the south-east.
+
+### aus-005 | australia
+U: What's the population of Australia?
+S: A bit over twenty-six million people, last I learned. Most live in the big cities like Sydney, Melbourne, Brisbane, Perth and Adelaide.
+
+### aus-006 | australia
+U: What sports do Australians love?
+S: Heaps! Aussie rules footy is huge, especially in Victoria. Rugby league is big in New South Wales and Queensland. Cricket rules the summer, and then there's swimming, netball, tennis and surfing. Aussies will watch just about any sport.
+U: What's Aussie rules?
+S: Australian rules football is played on a big oval field with an oval ball. You can kick it, handball it, and take spectacular high marks by leaping on other players' backs. Fast, physical, and very hard to explain to anyone overseas.
+
+### aus-007 | australia
+U: What's the Melbourne Cup?
+S: The Melbourne Cup is a famous horse race held on the first Tuesday of November. It's called the race that stops a nation because offices pause for it. Melbourne even gets a public holiday.
+
+### aus-008 | australia
+U: Tell me about Sydney.
+S: Sydney is Australia's biggest city, famous for its harbour, the Opera House and the Harbour Bridge. You've got beaches like Bondi and Manly, great food, and a ferry ride across the harbour is one of the best cheap tours going.
+
+### aus-009 | australia
+U: What's Melbourne like?
+S: Melbourne is known for its laneways, coffee culture, street art, sport and arts scene. The weather is famously changeable, sunny one minute and pouring the next. Locals carry a jacket and sunnies just in case.
+
+### aus-010 | australia
+U: Who are the First Nations people of Australia?
+S: Aboriginal and Torres Strait Islander peoples are the First Peoples of Australia, with cultures stretching back more than sixty thousand years. That makes them among the oldest continuous cultures on Earth. There are hundreds of distinct nations, each with their own languages and connection to Country.
+
+### aus-011 | australia
+U: What's Anzac Day?
+S: Anzac Day, on the twenty-fifth of April, honours Australians and New Zealanders who served and died in wars and conflicts. It started with the landing at Gallipoli in 1915. People attend dawn services, marches, and there's often a game of two-up afterwards.
+
+### aus-012 | australia
+U: What's the outback?
+S: The outback is the vast, remote interior of Australia. Red dirt, huge skies, scattered stations and tiny towns. It can be stunning and harsh in equal measure, so if you drive out there, carry plenty of water and let someone know your plans.
+
+### aus-013 | australia
+U: What's the weather like in Australia?
+S: It depends where you are! The north is tropical with a wet season and a dry season. The south has four seasons, with cool winters. And the centre is desert, scorching days and cold nights. Remember the seasons are flipped from the Northern Hemisphere, so Christmas is in summer.
+
+### aus-014 | australia
+U: Do Australians really have Christmas at the beach?
+S: Plenty do! Christmas falls in summer, so seafood, cold ham, pavlova and a swim are pretty common. Some families still do a full hot roast, though, even when it's thirty-five degrees outside.
+
+### aus-015 | australia
+U: What's Tasmania like?
+S: Tasmania is an island state with wild landscapes, old-growth forests, rugged coastlines and fantastic food. Cradle Mountain, Freycinet and the Tasman Peninsula are standouts. It's also home to the Tasmanian devil.
+
+### aus-016 | australia
+U: What's the longest river in Australia?
+S: The Murray River is the longest, at about two and a half thousand kilometres. Together with the Darling River system, it forms the Murray-Darling Basin, which is crucial for farming.
+
+### aus-017 | australia
+U: What's a ute?
+S: A ute is short for utility vehicle, basically a car with a tray at the back. They're everywhere in Australia, especially in the country. Perfect for hauling gear, dogs and the occasional mattress.
+
+### aus-018 | australia
+U: What's the Great Ocean Road?
+S: The Great Ocean Road is a stunning coastal drive in Victoria, about two hundred and forty kilometres long. It was built by returned soldiers after the First World War. The Twelve Apostles, giant limestone stacks in the sea, are the most famous stop.
+
+### aus-019 | australia
+U: Is Australia a country or a continent?
+S: Both! Australia is a country, and it's also the main landmass of the continent sometimes called Australia or Oceania, depending on who you ask.
+
+### aus-020 | australia
+U: What currency does Australia use?
+S: The Australian dollar. The notes are made of polymer, a kind of plastic, which makes them waterproof and hard to forge. Australia was the first country to use polymer banknotes.
+
+### aus-021 | australia
+U: What's Perth like?
+S: Perth is on the west coast and it's one of the most isolated big cities in the world. Gorgeous beaches, sunsets over the Indian Ocean, Kings Park, and Rottnest Island with its quokkas just a ferry ride away.
+
+### aus-022 | australia
+U: What's Brisbane like?
+S: Brisbane is the capital of Queensland, known for its warm, sunny climate and laid-back vibe. The river winds through the city, there's a man-made beach at South Bank, and the Gold Coast and Sunshine Coast are both close by.
+
+### aus-023 | australia
+U: What's Adelaide known for?
+S: Adelaide is known for festivals, especially the Fringe in summer, and for being close to world-famous wine regions like the Barossa Valley. It's easy to get around and has lovely beaches too.
+
+### aus-024 | australia
+U: Why do Australians say mate so much?
+S: Ha, good question! Mate is a friendly, casual way of addressing someone. It's linked to the idea of mateship, which is about loyalty, equality and looking out for each other. Used right, it's warm. Used with the wrong tone, it can mean you're in trouble, mate.
+
+### aus-025 | australia
+U: What is the Daintree?
+S: The Daintree is an ancient tropical rainforest in far north Queensland. It's thought to be well over a hundred million years old. It runs right down to the reef, so you've got two World Heritage areas side by side.
+
+### aus-026 | australia
+U: What time zones does Australia have?
+S: Mainland Australia has three main time zones: Eastern, Central and Western. Some states use daylight saving in summer and some don't, which makes things confusing even for locals.
+
+### aus-027 | australia
+U: What's cricket?
+S: Cricket is a bat-and-ball game played between two teams of eleven. One team bowls and the other bats, trying to score runs. Test matches can last five days! The Ashes, against England, is the biggest rivalry.
+U: Five days? Seriously?
+S: Seriously! And sometimes it still ends in a draw. Cricket is as much about patience and tactics as it is about action.
+
+### aus-028 | australia
+U: What's the Australian national anthem?
+S: It's called Advance Australia Fair. It became the national anthem in 1984, replacing God Save the Queen.
+
+### aus-029 | australia
+U: What's a station in the outback?
+S: A station is a large rural property, usually for raising cattle or sheep. Some outback stations are bigger than small countries! Kids on remote stations used to do school over the radio.
+
+### aus-030 | australia
+U: What's the Sydney Opera House made of?
+S: Its famous sails are covered in over a million glazed white tiles. They're self-cleaning in a way, because the rain washes them. It was designed by Danish architect Jørn Utzon and opened in 1973.
+
+### aus-031 | australia
+U: What's a bushfire?
+S: A bushfire is an uncontrolled fire in the bush or grassland. They're a serious danger in Australian summers, especially when it's hot, dry and windy. If you live in a bushfire-prone area, having a fire plan is really important.
+
+### aus-032 | australia
+U: What's the Nullarbor?
+S: The Nullarbor Plain is a huge, flat, almost treeless stretch of land across South Australia and Western Australia. The name comes from Latin for no tree. The Eyre Highway crosses it, and it includes one of the longest straight roads in the world.
+
+### aus-033 | australia
+U: Is Australia close to New Zealand?
+S: Fairly close, about three hours' flight from Sydney to Auckland. Aussies and Kiwis are like siblings: we're close, we share a lot, and we love beating each other at sport.
+
+### aus-034 | australia
+U: Where should I go if I visit Australia?
+S: Depends how long you've got! For a first trip, Sydney for the harbour, the Great Barrier Reef for snorkelling, and Uluru for the outback make a great combo. With more time, add Melbourne, Tasmania and the west coast.
+
+### aus-035 | australia
+U: What's a thong in Australia?
+S: In Australia, thongs are flip-flops, the rubber sandals you wear to the beach. Visitors are sometimes alarmed when an Aussie says they've left their thongs in the car.

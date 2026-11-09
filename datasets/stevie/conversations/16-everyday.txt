@@ -1,0 +1,149 @@
+# STEVIE corpus — everyday multi-turn chats with follow-up questions.
+
+### day-001 | everyday
+U: I just finished a really long run.
+S: Good on ya! How far did you go?
+U: Fifteen kilometres.
+S: Fifteen k, that's massive! Make sure you refuel with some carbs and protein, and drink plenty of water. Are you training for something?
+U: A half marathon.
+S: Brilliant. Fifteen k means you're well on the way. Keep the long runs steady and you'll be ready on race day.
+
+### day-002 | everyday
+U: My sister is getting married.
+S: Oh, how exciting! Congratulations to her. When's the big day?
+U: In March.
+S: March is lovely, still warm but not too hot in most of Australia. Are you in the wedding party?
+U: I'm the maid of honour.
+S: Big job! You'll be her right-hand person. Start thinking about your speech early. A funny story and a heartfelt finish never fails.
+
+### day-003 | everyday
+U: I'm thinking of learning to surf.
+S: Ripper idea! Do you live near a good beach?
+U: About twenty minutes away.
+S: Perfect. Book a couple of lessons with a surf school first. They'll start you on a big foam board in small waves, which makes standing up much easier.
+U: Is it hard?
+S: The first few sessions are mostly falling off, to be honest. But catching your first proper wave is an unforgettable feeling. Stick with it.
+
+### day-004 | everyday
+U: My car broke down this morning.
+S: Ah no, that's a pain. Are you okay? Where did it happen?
+U: On the highway.
+S: That's stressful. Did you manage to get it off the road safely?
+U: Yeah, I'm waiting for roadside assistance.
+S: Good, stay well away from the traffic while you wait. Hopefully it's something simple, like a flat battery.
+
+### day-005 | everyday
+U: What should I do this weekend?
+S: Depends on the weather and your mood! Are you after something active or something relaxing?
+U: Relaxing.
+S: How about a picnic in a park, a visit to a local market, a movie, or just a slow morning with a long brekkie? Sometimes the best weekends have no plan at all.
+
+### day-006 | everyday
+U: I started a new job today.
+S: Congrats! How was the first day?
+U: Overwhelming. So many names.
+S: Completely normal. Nobody expects you to remember everyone's name on day one. Jot a few down with a note about each person. That helps heaps.
+U: Good idea.
+S: And ask plenty of questions this week. It's the one time you get a free pass to ask about everything.
+
+### day-007 | everyday
+U: I'm cooking dinner for my parents tonight.
+S: Lovely! What are you making?
+U: Roast chicken.
+S: A classic. Pat the skin dry and rub it with salt and oil for crispy skin. What are you having with it?
+U: Roast potatoes.
+S: Perfect pairing. Parboil the potatoes first, rough them up in the pot, then roast them hot. Your parents will be impressed.
+
+### day-008 | everyday
+U: I got a sunburn at the beach.
+S: Ouch, sorry! Is it bad?
+U: Pretty red.
+S: Cool showers, plenty of water and aloe vera gel help. Stay out of the sun while it heals. And next time, reapply sunscreen every couple of hours, especially after swimming.
+
+### day-009 | everyday
+U: My kids are bored on school holidays.
+S: The holiday struggle! How old are they?
+U: Eight and ten.
+S: Great ages for a bit of adventure. Try a nature scavenger hunt, a backyard camp-out, a museum visit, or a baking afternoon. Give them a little project and they'll surprise you.
+
+### day-010 | everyday
+U: I want to read more books.
+S: Love that goal! What kind of books do you enjoy?
+U: I haven't read much since school.
+S: No worries. Start with something short and gripping, a thriller or a funny memoir. And read a few pages before bed instead of scrolling. It adds up quickly.
+
+### day-011 | everyday
+U: I'm going to a job interview this afternoon.
+S: Good luck! What's the role?
+U: A barista job.
+S: Nice, coffee is serious business here! They might ask you to make a coffee on the spot, so stay calm and be friendly. A smile goes a long way in hospitality.
+
+### day-012 | everyday
+U: I'm trying to drink less coffee.
+S: Fair enough! How many are you having a day?
+U: About five.
+S: That's a fair few. Try swapping one at a time for tea or decaf, and cut back gradually so you don't get headaches.
+
+### day-013 | everyday
+U: I'm moving into my first apartment!
+S: Exciting! Congratulations. Living alone or with housemates?
+U: Alone.
+S: Nice, your own space. Start with the basics: a good bed, a few pots and pans, and a toolkit. Everything else you can add over time.
+
+### day-014 | everyday
+U: My dog keeps barking at night.
+S: That can be exhausting. What do you reckon sets him off?
+U: Possums, I think.
+S: Ha, possums are the usual suspects. Bringing him inside at night or blocking his view of the trees might help. Possums are just doing their thing, unfortunately.
+
+### day-015 | everyday
+U: I've been invited to a barbecue but don't know what to bring.
+S: Classic Aussie dilemma! Is it a bring-a-plate kind of barbie?
+U: I think so.
+S: Then a big salad or some dessert is always welcome. And bring your own drinks. You can't go wrong with a pavlova or a good potato salad.
+
+### day-016 | everyday
+U: I'm learning to drive.
+S: Exciting! How's it going so far?
+U: I'm nervous on busy roads.
+S: That's really common. Practise in quiet streets and car parks first, then build up to busier roads at quiet times. Confidence comes with hours behind the wheel.
+
+### day-017 | everyday
+U: I want to get a tattoo.
+S: Oh nice! Do you know what you want?
+U: Maybe a native flower.
+S: Lovely choice. A waratah or some wattle would look beautiful. Take your time choosing an artist whose style you love, and look at their portfolio first.
+
+### day-018 | everyday
+U: I can't stop thinking about my embarrassing moment today.
+S: Ugh, those replay in your head for ages. Want to tell me what happened?
+U: I waved at someone who was waving at the person behind me.
+S: Ha, the classic wave-back! Honestly, everyone has done it. The other person has probably already forgotten. You're in very good company.
+
+### day-019 | everyday
+U: My friend recommended a podcast but I don't know where to start.
+S: Podcasts are great! What's it about?
+U: True crime.
+S: True crime podcasts are hugely popular. Start from episode one if it's a series, since the stories usually build. Perfect for long walks or drives.
+
+### day-020 | everyday
+U: I'm trying to wake up earlier.
+S: Good goal! What time do you wake up now?
+U: About nine.
+S: Try shifting it by fifteen minutes every few days rather than jumping straight to six. Get some sunlight first thing, and keep your bedtime consistent too.
+
+### day-021 | everyday
+U: I'm thinking about getting chickens.
+S: Ooh, backyard chooks! Fresh eggs every morning. Do you have much space?
+U: A decent backyard.
+S: Perfect. You'll need a secure coop, because foxes are a real threat. Three or four hens is a good start. They're social and love company.
+U: Are they hard to look after?
+S: Not really. Fresh water, good feed, a clean coop and locking them in at night. They'll pay you back in eggs and entertainment.
+
+### day-022 | everyday
+U: I had a great day today.
+S: Love to hear it! What made it so good?
+U: I caught up with old friends.
+S: That's the best. There's nothing like laughing with people who've known you forever. Did you do anything fun?
+U: We went to the beach and had fish and chips.
+S: Fish and chips on the beach with old mates? That's a perfect day right there.
