@@ -1,0 +1,187 @@
+id = "gutenberg-au"
+name = "Australian public-domain literature (Project Gutenberg)"
+kind = "gutenberg"
+license = "Public domain (Australia and United States)"
+license_url = "https://www.gutenberg.org/policy/permission.html"
+homepage = "https://www.gutenberg.org"
+provenance = "Australian literature, verse and non-fiction from 1870–1920 transcribed by Project Gutenberg volunteers. Every author died before 1955, so the works are in the public domain in Australia; all were published before 1929, so they are in the public domain in the United States."
+redistribution = "Public-domain texts. The Project Gutenberg licence applies only to the 'Project Gutenberg' trademark and boilerplate, which GLIMMER strips before use. GLIMMER does not redistribute the texts."
+citation = "Project Gutenberg, https://www.gutenberg.org"
+notes = "Supplies authentic Australian English vocabulary and idiom (bush life, vernacular dialogue, C. J. Dennis's slang verse). Period texts contain dated attitudes; paragraphs with racial slurs are removed by the blocklist filter, and the material is a minority of the pretraining mix."
+
+[cleaning]
+min_chars = 200
+max_chars = 20_000
+min_alpha_ratio = 0.6
+near_dedup = true
+near_dedup_threshold = 0.8
+blocklist = true
+chunk_chars = 3000
+
+[[books]]
+id = 213
+title = "The Man from Snowy River"
+author = "A. B. Paterson"
+died = 1941
+
+[[books]]
+id = 307
+title = "Three Elephant Power, and Other Stories"
+author = "A. B. Paterson"
+died = 1941
+
+[[books]]
+id = 1317
+title = "Saltbush Bill, J. P."
+author = "A. B. Paterson"
+died = 1941
+
+[[books]]
+id = 6119
+title = "An Outback Marriage"
+author = "A. B. Paterson"
+died = 1941
+
+[[books]]
+id = 10493
+title = "The Old Bush Songs"
+author = "A. B. Paterson (ed.)"
+died = 1941
+
+[[books]]
+id = 214
+title = "In the Days When the World Was Wide"
+author = "Henry Lawson"
+died = 1922
+
+[[books]]
+id = 1036
+title = "Joe Wilson and His Mates"
+author = "Henry Lawson"
+died = 1922
+
+[[books]]
+id = 1231
+title = "On the Track"
+author = "Henry Lawson"
+died = 1922
+
+[[books]]
+id = 1313
+title = "Over the Sliprails"
+author = "Henry Lawson"
+died = 1922
+
+[[books]]
+id = 7065
+title = "Children of the Bush"
+author = "Henry Lawson"
+died = 1922
+
+[[books]]
+id = 7144
+title = "While the Billy Boils"
+author = "Henry Lawson"
+died = 1922
+
+[[books]]
+id = 52066
+title = "Verses Popular and Humorous"
+author = "Henry Lawson"
+died = 1922
+
+[[books]]
+id = 4730
+title = "The Songs of a Sentimental Bloke"
+author = "C. J. Dennis"
+died = 1938
+
+[[books]]
+id = 15524
+title = "Digger Smith"
+author = "C. J. Dennis"
+died = 1938
+
+[[books]]
+id = 16251
+title = "A Book for Kids"
+author = "C. J. Dennis"
+died = 1938
+
+[[books]]
+id = 3677
+title = "On Our Selection"
+author = "Steele Rudd"
+died = 1935
+
+[[books]]
+id = 11620
+title = "My Brilliant Career"
+author = "Miles Franklin"
+died = 1954
+
+[[books]]
+id = 21659
+title = "Some Everyday Folk and Dawn"
+author = "Miles Franklin"
+died = 1954
+
+[[books]]
+id = 3470
+title = "Such Is Life"
+author = "Joseph Furphy"
+died = 1912
+
+[[books]]
+id = 1198
+title = "Robbery Under Arms"
+author = "Rolf Boldrewood"
+died = 1915
+
+[[books]]
+id = 4221
+title = "Shearing in the Riverina, New South Wales"
+author = "Rolf Boldrewood"
+died = 1915
+
+[[books]]
+id = 78420
+title = "Bush Studies"
+author = "Barbara Baynton"
+died = 1929
+
+[[books]]
+id = 37825
+title = "Thirty Years in Australia"
+author = "Ada Cambridge"
+died = 1926
+
+[[books]]
+id = 50476
+title = "The Three Miss Kings"
+author = "Ada Cambridge"
+died = 1926
+
+[[books]]
+id = 7163
+title = "The History of Australian Exploration from 1788 to 1888"
+author = "Ernest Favenc"
+died = 1908
+
+[[books]]
+id = 12798
+title = "By Rock and Pool on an Austral Shore"
+author = "Louis Becke"
+died = 1913
+
+[[books]]
+id = 4220
+title = "An Autobiography"
+author = "Catherine Helen Spence"
+died = 1910
+
+[[books]]
+id = 962
+title = "The Poems of Henry Kendall"
+author = "Henry Kendall"
+died = 1882

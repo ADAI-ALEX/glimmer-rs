@@ -1,0 +1,23 @@
+# General-language pretraining mixture for STEVIE and other GLIMMER models.
+name = "pretrain-mix"
+kind = "pretrain"
+description = "TinyStories + Simple English Wikipedia + Australian public-domain literature"
+tokenizer = "data/tokenizers/glimmer-8k.json"
+
+[split]
+val_fraction = 0.005
+test_fraction = 0.005
+seed = 7
+
+[[sources]]
+id = "tinystories-v2"
+weight = 1.0
+
+[[sources]]
+id = "simplewiki"
+weight = 1.0
+
+# Upsampled so Australian English is a meaningful share of what the model reads.
+[[sources]]
+id = "gutenberg-au"
+weight = 2.0

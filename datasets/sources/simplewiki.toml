@@ -1,0 +1,20 @@
+id = "simplewiki"
+name = "Simple English Wikipedia (2023-11-01 snapshot)"
+kind = "http_parquet"
+url = "https://huggingface.co/datasets/wikimedia/wikipedia/resolve/main/20231101.simple/train-00000-of-00001.parquet"
+text_column = "text"
+title_column = "title"
+license = "CC-BY-SA-3.0 / GFDL"
+license_url = "https://creativecommons.org/licenses/by-sa/3.0/"
+homepage = "https://huggingface.co/datasets/wikimedia/wikipedia"
+provenance = "Articles written by volunteers of the Simple English Wikipedia (simple.wikipedia.org), extracted to plain text by the Wikimedia Foundation's dataset pipeline."
+redistribution = "Share-alike licence requires attribution and licence preservation if redistributed. GLIMMER does not redistribute the text; it is downloaded on demand. Attribution is recorded in every dataset manifest built from it."
+citation = "Wikimedia Foundation, Wikimedia Downloads, https://dumps.wikimedia.org"
+notes = "Adds broad expository vocabulary and world knowledge written in plain English, complementing TinyStories' narrative style."
+
+[cleaning]
+min_chars = 200
+max_chars = 60_000
+min_alpha_ratio = 0.6
+near_dedup = false
+blocklist = true

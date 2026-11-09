@@ -1,0 +1,18 @@
+id = "stevie-conversations"
+name = "STEVIE Australian conversational corpus"
+kind = "conversations"
+path = "datasets/stevie/conversations"
+license = "Apache-2.0"
+license_url = "https://www.apache.org/licenses/LICENSE-2.0"
+homepage = "https://github.com/ADAI-ALEX/glimmer-rs/tree/main/datasets/stevie"
+provenance = "Original synthetic dialogues authored for GLIMMER by Claude (Anthropic) acting as the project's engineer, in November 2026. Written by hand, conversation by conversation, to establish STEVIE's personality. Not derived from any existing dataset, transcript or real person's speech."
+redistribution = "Original work released with the repository under Apache-2.0."
+notes = "STEVIE is a fictional character inspired by broadly positive traits (curiosity, warmth, enthusiasm for wildlife). It deliberately avoids the catchphrases, voice or identity of any real person; the corpus QC rejects impersonation markers."
+
+[cleaning]
+min_chars = 1
+max_chars = 1200
+min_alpha_ratio = 0.0
+near_dedup = true
+near_dedup_threshold = 0.7
+blocklist = false

@@ -1,0 +1,20 @@
+# Supervised conversational fine-tuning data for STEVIE.
+name = "stevie-sft"
+kind = "sft"
+description = "STEVIE Australian conversational corpus (original, Apache-2.0)"
+tokenizer = "data/tokenizers/glimmer-8k.json"
+
+[split]
+val_fraction = 0.06
+test_fraction = 0.04
+seed = 11
+
+[[sources]]
+id = "stevie-conversations"
+weight = 1.0
+
+[sft]
+system_prompt_probability = 0.5
+max_tokens = 512
+eval_prompts = "datasets/stevie/eval_prompts.toml"
+leakage_threshold = 0.7

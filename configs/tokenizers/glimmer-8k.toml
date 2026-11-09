@@ -1,0 +1,18 @@
+# Byte-level BPE tokenizer shared by every GLIMMER model trained on the default corpora.
+# Trained only on the *training split* of each corpus. A balanced sample (rather than
+# proportional to corpus size) gives Australian vocabulary from the literature corpus a fair
+# share of merges.
+name = "glimmer-8k"
+vocab_size = 8192
+min_frequency = 2
+
+[[sources]]
+id = "tinystories-v2"
+max_bytes = 40_000_000
+
+[[sources]]
+id = "simplewiki"
+max_bytes = 40_000_000
+
+[[sources]]
+id = "gutenberg-au"

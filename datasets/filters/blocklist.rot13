@@ -1,0 +1,50 @@
+# GLIMMER offensive-language blocklist (ROT13-encoded).
+#
+# Used by `glimmer data prepare` to drop paragraphs from public-domain historical texts that
+# contain racial slurs. Entries are ROT13-encoded so the terms are not displayed when browsing
+# the repository; decode with any ROT13 tool. Matching is case-insensitive and whole-word.
+# One entry per line; lines starting with '#' are comments.
+avttre
+avttref
+avttn
+avttnf
+avt
+avtf
+obbat
+obbatf
+nob
+nobf
+qnexvr
+qnexvrf
+qnexl
+pbba
+pbbaf
+puvax
+puvaxf
+puvaxvr
+puvaxl
+xnanxn
+xnanxnf
+yhoen
+yhoenf
+unys-pnfgr
+unys-pnfgrf
+oynpxsryybj
+oynpxsryybjf
+oynpxsryyre
+oynpxsryyref
+wnc
+wncf
+jbc
+jbcf
+qntb
+qntbrf
+qntbf
+tbbx
+tbbxf
+jbt
+jbtf
+fcvp
+fcvpf
+xvxr
+xvxrf

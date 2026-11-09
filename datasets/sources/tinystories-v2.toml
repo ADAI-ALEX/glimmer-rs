@@ -1,0 +1,21 @@
+id = "tinystories-v2"
+name = "TinyStories V2 (GPT-4 generated subset)"
+kind = "http_text"
+url = "https://huggingface.co/datasets/roneneldan/TinyStories/resolve/main/TinyStoriesV2-GPT4-train.txt"
+# The full file is 2.2 GB; a 250 MB prefix (range request) is ample for local training budgets.
+max_bytes = 250_000_000
+document_separator = "<|endoftext|>"
+license = "CDLA-Sharing-1.0"
+license_url = "https://cdla.dev/sharing-1-0/"
+homepage = "https://huggingface.co/datasets/roneneldan/TinyStories"
+provenance = "Synthetic short stories written by GPT-4 (OpenAI) using a restricted vocabulary that a typical 3–4 year old understands; created and released by Ronen Eldan and Yuanzhi Li (Microsoft Research)."
+redistribution = "CDLA-Sharing-1.0 permits use and sharing; GLIMMER does not redistribute the data and downloads it on demand from the original host. Model outputs are 'Results' and are not restricted by the licence."
+citation = "Eldan, R. & Li, Y. (2023). TinyStories: How Small Can Language Models Be and Still Speak Coherent English? arXiv:2305.07759"
+notes = "Chosen because it is designed for exactly this regime: models of 1–30M parameters learn fluent, grammatical English from it. Its narrow narrative domain is balanced by Simple English Wikipedia."
+
+[cleaning]
+min_chars = 100
+max_chars = 20_000
+min_alpha_ratio = 0.65
+near_dedup = false
+blocklist = true
