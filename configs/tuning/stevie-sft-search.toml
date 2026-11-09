@@ -1,0 +1,35 @@
+# Hyperparameter search for STEVIE's conversational fine-tuning.
+#
+# TPE proposes configurations one at a time (learning from earlier trials); successive halving
+# trains 18 candidates for 22 steps, promotes the best third to 66 steps, and the best third of
+# those to the full 200-step budget. Every trial starts from the same pretrained checkpoint and
+# is scored on the validation split; the test split stays untouched for final evaluation.
+name = "stevie-sft-search"
+description = "Learning rate, weight decay and dropout for STEVIE's supervised fine-tuning."
+base_config = "configs/training/stevie-sft.toml"
+sampler = "tpe"
+trials = 18
+steps = 200
+seed = 2026
+
+[successive_halving]
+eta = 3
+min_steps = 22
+
+[[space]]
+kind = "log_uniform"
+name = "lr"
+low = 3e-5
+high = 2e-3
+
+[[space]]
+kind = "uniform"
+name = "weight_decay"
+low = 0.0
+high = 0.2
+
+[[space]]
+kind = "uniform"
+name = "dropout"
+low = 0.0
+high = 0.25
