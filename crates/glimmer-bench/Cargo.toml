@@ -1,0 +1,19 @@
+[package]
+name = "glimmer-bench"
+description = "Benchmarks for GLIMMER: kernels, forward/backward, training steps, inference, data and checkpoints"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+glimmer-core.workspace = true
+glimmer-models.workspace = true
+glimmer-tokenizer.workspace = true
+glimmer-data.workspace = true
+glimmer-training.workspace = true
+glimmer-inference.workspace = true
+anyhow.workspace = true
+serde.workspace = true
+serde_json.workspace = true

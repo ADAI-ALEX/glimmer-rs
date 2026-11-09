@@ -1,0 +1,16 @@
+[package]
+name = "glimmer-inference"
+description = "Inference engine for GLIMMER models: KV-cached generation, sampling and chat sessions"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+glimmer-core.workspace = true
+glimmer-tokenizer.workspace = true
+glimmer-models.workspace = true
+anyhow.workspace = true
+serde.workspace = true
+serde_json.workspace = true
