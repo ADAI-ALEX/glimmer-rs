@@ -1,0 +1,234 @@
+# Held-out evaluation prompts for STEVIE.
+#
+# These prompts are NEVER used for training. `glimmer data build stevie-sft` checks every
+# training conversation against them (MinHash similarity) and excludes overlaps. The first four
+# are the example interactions from the project brief, deliberately kept out of the training
+# corpus so STEVIE's answers to them are generated, not memorised.
+#
+# Multi-turn prompts include a fixed earlier assistant turn; `expect_any` lists words a reply
+# that uses the earlier context would plausibly contain (a crude continuity probe).
+
+[[prompt]]
+id = "brief-greeting"
+category = "greeting"
+messages = [{ role = "user", content = "How are you going, mate?" }]
+
+[[prompt]]
+id = "brief-rust"
+category = "tech"
+messages = [{ role = "user", content = "What should I learn first in Rust?" }]
+
+[[prompt]]
+id = "brief-bad-day"
+category = "feelings"
+messages = [{ role = "user", content = "I've had a really rubbish day." }]
+
+[[prompt]]
+id = "brief-animal"
+category = "wildlife"
+messages = [{ role = "user", content = "What's your favourite animal?" }]
+
+[[prompt]]
+id = "greet-2"
+category = "greeting"
+messages = [{ role = "user", content = "G'day Stevie, how's your day been?" }]
+
+[[prompt]]
+id = "greet-3"
+category = "greeting"
+messages = [{ role = "user", content = "Hey, good to see you again!" }]
+
+[[prompt]]
+id = "identity-1"
+category = "identity"
+messages = [{ role = "user", content = "What's your name and what do you do?" }]
+
+[[prompt]]
+id = "identity-2"
+category = "identity"
+messages = [{ role = "user", content = "Are you a human or a computer?" }]
+
+[[prompt]]
+id = "identity-3"
+category = "identity"
+messages = [{ role = "user", content = "Who built you?" }]
+
+[[prompt]]
+id = "wild-wombat"
+category = "wildlife"
+messages = [{ role = "user", content = "Tell me something cool about wombats." }]
+
+[[prompt]]
+id = "wild-pouch"
+category = "wildlife"
+messages = [{ role = "user", content = "Why do kangaroos have pouches?" }]
+
+[[prompt]]
+id = "wild-koala"
+category = "wildlife"
+messages = [{ role = "user", content = "Are koalas dangerous?" }]
+
+[[prompt]]
+id = "food-barbie"
+category = "food"
+messages = [{ role = "user", content = "What's a good thing to cook on a barbie?" }]
+
+[[prompt]]
+id = "food-vegemite"
+category = "food"
+messages = [{ role = "user", content = "Have you ever tried Vegemite?" }]
+
+[[prompt]]
+id = "aus-city"
+category = "australia"
+messages = [{ role = "user", content = "What's the best city in Australia?" }]
+
+[[prompt]]
+id = "aus-tassie"
+category = "australia"
+messages = [{ role = "user", content = "What should I see if I visit Tasmania?" }]
+
+[[prompt]]
+id = "slang-chockers"
+category = "slang"
+messages = [{ role = "user", content = "What does chockers mean?" }]
+
+[[prompt]]
+id = "slang-bottleo"
+category = "slang"
+messages = [{ role = "user", content = "Can you explain what a bottle-o is?" }]
+
+[[prompt]]
+id = "tech-memory"
+category = "tech"
+messages = [{ role = "user", content = "How does a computer remember things?" }]
+
+[[prompt]]
+id = "tech-llm"
+category = "tech"
+messages = [{ role = "user", content = "What is a large language model?" }]
+
+[[prompt]]
+id = "sci-moon"
+category = "science"
+messages = [{ role = "user", content = "Why does the moon change shape?" }]
+
+[[prompt]]
+id = "sci-multiply"
+category = "science"
+messages = [{ role = "user", content = "What is 7 times 8?" }]
+
+[[prompt]]
+id = "sci-rainbow"
+category = "science"
+messages = [{ role = "user", content = "How do rainbows form?" }]
+
+[[prompt]]
+id = "feel-newjob"
+category = "feelings"
+messages = [{ role = "user", content = "I'm nervous about my first day at a new job." }]
+
+[[prompt]]
+id = "feel-fight"
+category = "feelings"
+messages = [{ role = "user", content = "My best mate and I had a fight." }]
+
+[[prompt]]
+id = "advice-cooking"
+category = "advice"
+messages = [{ role = "user", content = "How do I get better at cooking?" }]
+
+[[prompt]]
+id = "advice-focus"
+category = "advice"
+messages = [{ role = "user", content = "Any tips for staying focused while studying?" }]
+
+[[prompt]]
+id = "humour-koala"
+category = "humour"
+messages = [{ role = "user", content = "Tell me a joke about koalas." }]
+
+[[prompt]]
+id = "humour-funny"
+category = "humour"
+messages = [{ role = "user", content = "Say something funny." }]
+
+[[prompt]]
+id = "small-rain"
+category = "smalltalk"
+messages = [{ role = "user", content = "It's been raining all week." }]
+
+[[prompt]]
+id = "small-weekend"
+category = "smalltalk"
+messages = [{ role = "user", content = "What are you doing this weekend?" }]
+
+[[prompt]]
+id = "general-everest"
+category = "general"
+messages = [{ role = "user", content = "What's the tallest mountain in the world?" }]
+
+[[prompt]]
+id = "general-leap"
+category = "general"
+messages = [{ role = "user", content = "How many days are in a leap year?" }]
+
+[[prompt]]
+id = "opinion-tea"
+category = "opinion"
+messages = [{ role = "user", content = "Do you prefer tea or coffee?" }]
+
+[[prompt]]
+id = "travel-flight"
+category = "travel"
+messages = [{ role = "user", content = "Any tips for a long flight?" }]
+
+[[prompt]]
+id = "multi-name"
+category = "multiturn"
+expect_any = ["Tom"]
+messages = [
+  { role = "user", content = "My name is Tom and I love fishing." },
+  { role = "assistant", content = "Good to meet you, Tom! Fishing is a top hobby. Where do you usually go?" },
+  { role = "user", content = "Mostly off the rocks near Newcastle. What's my name again?" },
+]
+
+[[prompt]]
+id = "multi-puppy"
+category = "multiturn"
+expect_any = ["Rosie", "kelpie", "sit", "puppy"]
+messages = [
+  { role = "user", content = "I just got a new puppy called Rosie." },
+  { role = "assistant", content = "Congratulations on Rosie! What breed is she?" },
+  { role = "user", content = "A kelpie. What should I teach her first?" },
+]
+
+[[prompt]]
+id = "multi-roadtrip"
+category = "multiturn"
+expect_any = ["coast", "beach", "stop", "drive"]
+messages = [
+  { role = "user", content = "I'm planning a road trip from Sydney to Melbourne." },
+  { role = "assistant", content = "Great trip! Are you taking the coastal route or the inland highway?" },
+  { role = "user", content = "The coast. Where should I stop?" },
+]
+
+[[prompt]]
+id = "multi-exam"
+category = "multiturn"
+expect_any = ["chemistry", "study", "exam"]
+messages = [
+  { role = "user", content = "I've been feeling stressed about exams." },
+  { role = "assistant", content = "That's really common. What subject is worrying you most?" },
+  { role = "user", content = "Chemistry. I just don't get it." },
+]
+
+[[prompt]]
+id = "multi-colour"
+category = "multiturn"
+expect_any = ["blue"]
+messages = [
+  { role = "user", content = "My favourite colour is blue, like the ocean." },
+  { role = "assistant", content = "Lovely choice! The ocean is a beautiful blue. Do you live near the sea?" },
+  { role = "user", content = "Yeah, near Bondi. Do you remember my favourite colour?" },
+]
