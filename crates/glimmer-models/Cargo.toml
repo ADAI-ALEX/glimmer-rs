@@ -1,0 +1,20 @@
+[package]
+name = "glimmer-models"
+description = "Decoder-only transformer language models, backend selection and verification for GLIMMER"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+glimmer-core.workspace = true
+burn.workspace = true
+anyhow.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+
+# Apple AMX acceleration for the CPU (Flex) backend's matrix multiplications. Only enabled on
+# macOS because gemm's AMX path is experimental and Apple-specific.
+[target.'cfg(target_os = "macos")'.dependencies]
+burn = { workspace = true, features = ["apple-amx"] }
