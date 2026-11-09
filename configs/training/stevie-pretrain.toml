@@ -1,0 +1,49 @@
+# STEVIE stage 1: general-language pretraining from random initialisation.
+#
+# Sized from measurements on an M1 Pro (16 GB): `tiny` (13.8M params) at context 512 trains at
+# ~13k tokens/s on Metal, so 16k steps × 8,192 tokens ≈ 131M tokens ≈ one epoch of
+# `pretrain-mix` in about three hours. The peak learning rate comes from a short LR range test
+# (see docs/training.md).
+[run]
+name = "stevie-pretrain"
+stage = "pretrain"
+seed = 1337
+backend = "auto"
+
+[model]
+preset = "tiny"
+context_length = 512
+
+[data]
+dataset = "pretrain-mix"
+
+[optimizer]
+kind = "adamw"
+lr = 1e-3
+min_lr = 1e-4
+weight_decay = 0.1
+beta1 = 0.9
+beta2 = 0.95
+eps = 1e-8
+grad_clip = 1.0
+
+[schedule]
+kind = "cosine"
+warmup_steps = 500
+max_steps = 16000
+
+[batch]
+batch_size = 8
+grad_accum = 2
+
+[eval]
+every = 500
+batches = 24
+sample_prompts = true
+
+[checkpoint]
+every = 1000
+keep_last = 2
+
+[early_stopping]
+patience = 0
