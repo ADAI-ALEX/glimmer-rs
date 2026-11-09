@@ -62,9 +62,8 @@ pub fn attention_fwd(c: &Ctx, b: usize, h: usize, t: usize, dh: usize) -> Measur
     let k = Tensor::<4>::random([b, h, t, dh], Distribution::Default, d);
     let v = Tensor::<4>::random([b, h, t, dh], Distribution::Default, d);
     let opts = AttentionModuleOptions { scale: None, softcap: None, is_causal: true };
-    let stats = measure(c.warmup, c.iterations, || {
-        sync1(attention(q.clone(), k.clone(), v.clone(), None, None, opts).sum())
-    });
+    let stats =
+        measure(c.warmup, c.iterations, || sync1(attention(q.clone(), k.clone(), v.clone(), None, None, opts).sum()));
     let flops = 4.0 * (b * h) as f64 * (t * t) as f64 * dh as f64 / 2.0 / 1e9;
     c.m("attention (causal, fwd)", format!("B{b} H{h} T{t} Dh{dh}"), stats, Some((flops, "GFLOP")))
 }
@@ -112,9 +111,18 @@ pub fn decode(c: &Ctx, cfg: &ModelConfig, new_tokens: usize) -> Result<(Measurem
     let tok = Tokenizer::bytes_only();
     let cfg = ModelConfig { vocab_size: tok.vocab_size().max(cfg.vocab_size), ..cfg.clone() };
     let model = Transformer::init(&cfg, d, 5);
-    let mut engine = Engine::from_parts(model.clone(), tok, cfg.clone(), c.device.clone(), "bench", Path::new("."), None);
+    let mut engine =
+        Engine::from_parts(model.clone(), tok, cfg.clone(), c.device.clone(), "bench", Path::new("."), None);
     let prompt: Vec<u32> = (0..64).map(|i| 100 + (i % 50)).collect();
-    let sampling = SamplingConfig { max_new_tokens: new_tokens, temperature: 0.0, top_k: 0, top_p: 1.0, repetition_penalty: 1.0, seed: 1, repetition_window: 0 };
+    let sampling = SamplingConfig {
+        max_new_tokens: new_tokens,
+        temperature: 0.0,
+        top_k: 0,
+        top_p: 1.0,
+        repetition_penalty: 1.0,
+        seed: 1,
+        repetition_window: 0,
+    };
     // Ban end-of-turn tokens by measuring a fixed number of steps directly.
     let cached = measure(c.warmup.min(2), c.iterations.min(5), || {
         engine.reset_cache();
@@ -155,7 +163,12 @@ pub fn data_loading(c: &Ctx, path: &Path, batch: usize, seq: usize) -> Result<Me
         let batch = b.sample(batch, &mut rng);
         std::hint::black_box(batch);
     });
-    let mut m = c.m("data loading (pretrain batch)", format!("B{batch} T{seq} mmap"), stats, Some(((batch * seq) as f64, "tok")));
+    let mut m = c.m(
+        "data loading (pretrain batch)",
+        format!("B{batch} T{seq} mmap"),
+        stats,
+        Some(((batch * seq) as f64, "tok")),
+    );
     m.backend = "host".into();
     Ok(m)
 }
@@ -184,7 +197,12 @@ pub fn tokenizer(c: &Ctx, tok: &Tokenizer, text: &str) -> Measurement {
     let stats = measure(1, c.iterations, || {
         std::hint::black_box(tok.encode(text));
     });
-    let mut m = c.m("tokenizer encode", format!("{} KB text, vocab {}", text.len() / 1000, tok.vocab_size()), stats, Some((text.len() as f64 / 1e6, "MB")));
+    let mut m = c.m(
+        "tokenizer encode",
+        format!("{} KB text, vocab {}", text.len() / 1000, tok.vocab_size()),
+        stats,
+        Some((text.len() as f64 / 1e6, "MB")),
+    );
     m.backend = "host".into();
     m
 }

@@ -99,10 +99,8 @@ pub struct SourceSpec {
 impl SourceSpec {
     pub fn load(path: impl AsRef<Path>) -> Result<Self> {
         let path = path.as_ref();
-        let text = std::fs::read_to_string(path)
-            .with_context(|| format!("reading source {}", path.display()))?;
-        let spec: Self =
-            toml::from_str(&text).with_context(|| format!("parsing source {}", path.display()))?;
+        let text = std::fs::read_to_string(path).with_context(|| format!("reading source {}", path.display()))?;
+        let spec: Self = toml::from_str(&text).with_context(|| format!("parsing source {}", path.display()))?;
         if spec.id.is_empty() || spec.license.is_empty() {
             bail!("source {} must declare an id and a licence", path.display());
         }

@@ -1,0 +1,9 @@
+# STEVIE — a little Aussie AI mate, trained from scratch.
+# `glimmer train --model stevie` runs each stage in order. Stage 2 initialises from the best
+# checkpoint of stage 1 and exports the final model to models/stevie.
+name = "stevie"
+description = "A little Aussie AI mate, trained from scratch."
+stages = [
+  "configs/training/stevie-pretrain.toml",
+  "configs/training/stevie-sft.toml",
+]

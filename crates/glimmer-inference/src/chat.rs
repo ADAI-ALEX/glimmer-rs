@@ -63,10 +63,7 @@ impl ChatSession {
                 if tokens.len() >= context_length {
                     bail!("the latest message alone ({} tokens) exceeds the context window", tokens.len());
                 }
-                return Ok(FittedPrompt {
-                    tokens,
-                    dropped_messages: start,
-                });
+                return Ok(FittedPrompt { tokens, dropped_messages: start });
             }
             // Drop the oldest exchange (user + assistant) to keep turns aligned.
             start += 2.min(self.messages.len() - 1 - start);
@@ -117,7 +114,7 @@ mod tests {
         s.messages.push(Message::user("latest?"));
         let fitted = s.fit_prompt(&tok, 200, 40).unwrap();
         assert!(fitted.tokens.len() <= 160);
-        assert!(fitted.dropped_messages > 0 && fitted.dropped_messages % 2 == 0);
+        assert!(fitted.dropped_messages > 0 && fitted.dropped_messages.is_multiple_of(2));
         let text = tok.decode(&fitted.tokens);
         assert!(text.starts_with("SYS"), "system prompt must be kept");
         assert!(text.ends_with("latest?"), "latest message must be kept");

@@ -1,0 +1,31 @@
+# A seconds-long smoke test: the micro preset on the pretraining mix. Useful for checking a
+# fresh install end to end (`glimmer train --config configs/training/micro-smoke.toml`).
+[run]
+name = "micro-smoke"
+stage = "pretrain"
+backend = "auto"
+
+[model]
+preset = "micro"
+context_length = 64
+
+[data]
+dataset = "pretrain-mix"
+
+[optimizer]
+lr = 2e-3
+min_lr = 2e-4
+
+[schedule]
+warmup_steps = 20
+max_steps = 200
+
+[batch]
+batch_size = 16
+
+[eval]
+every = 100
+batches = 8
+
+[checkpoint]
+every = 0

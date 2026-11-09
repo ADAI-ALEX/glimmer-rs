@@ -87,11 +87,7 @@ fn selected_sources(ws: &Workspace, ids: &[String], remote_only: bool) -> Result
 
 fn resolve_config(ws: &Workspace, value: &str, dir: &str) -> PathBuf {
     let p = ws.resolve(value);
-    if p.is_file() {
-        p
-    } else {
-        ws.configs_dir().join(dir).join(format!("{value}.toml"))
-    }
+    if p.is_file() { p } else { ws.configs_dir().join(dir).join(format!("{value}.toml")) }
 }
 
 pub fn run_data(ws: &Workspace, cmd: DataCmd) -> Result<()> {
@@ -176,11 +172,7 @@ fn first_split_spec(ws: &Workspace) -> Option<SplitSpec> {
     let dir = ws.configs_dir().join("datasets");
     let mut paths: Vec<PathBuf> = std::fs::read_dir(dir).ok()?.flatten().map(|e| e.path()).collect();
     paths.sort();
-    paths
-        .iter()
-        .filter_map(|p| DatasetSpec::load(p).ok())
-        .find(|s| s.kind == DatasetKind::Pretrain)
-        .map(|s| s.split)
+    paths.iter().filter_map(|p| DatasetSpec::load(p).ok()).find(|s| s.kind == DatasetKind::Pretrain).map(|s| s.split)
 }
 
 pub fn run_datasets(ws: &Workspace, cmd: DatasetsCmd) -> Result<()> {
@@ -224,12 +216,7 @@ pub fn run_datasets(ws: &Workspace, cmd: DatasetsCmd) -> Result<()> {
                 } else {
                     String::new()
                 };
-                println!(
-                    "    {:<6} {:>8} docs  {:>9} tokens{extra}",
-                    split,
-                    s.documents,
-                    format_count(s.tokens)
-                );
+                println!("    {:<6} {:>8} docs  {:>9} tokens{extra}", split, s.documents, format_count(s.tokens));
             }
             println!("\n  {}", bold("sources"));
             for s in &m.sources {

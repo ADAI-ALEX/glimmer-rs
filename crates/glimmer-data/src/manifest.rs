@@ -61,17 +61,13 @@ pub struct DatasetManifest {
 impl DatasetManifest {
     pub fn load(dir: impl AsRef<Path>) -> Result<Self> {
         let p = dir.as_ref().join("manifest.json");
-        let text = std::fs::read_to_string(&p)
-            .with_context(|| format!("reading dataset manifest {}", p.display()))?;
+        let text = std::fs::read_to_string(&p).with_context(|| format!("reading dataset manifest {}", p.display()))?;
         Ok(serde_json::from_str(&text)?)
     }
 
     pub fn save(&self, dir: impl AsRef<Path>) -> Result<()> {
         std::fs::create_dir_all(dir.as_ref())?;
-        std::fs::write(
-            dir.as_ref().join("manifest.json"),
-            serde_json::to_string_pretty(self)?,
-        )?;
+        std::fs::write(dir.as_ref().join("manifest.json"), serde_json::to_string_pretty(self)?)?;
         Ok(())
     }
 

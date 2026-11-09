@@ -52,7 +52,10 @@ fn install_ctrlc(control: Arc<TrainControl>) {
             eprintln!("\nForce quit.");
             std::process::exit(130);
         }
-        eprintln!("\n{} finishing the current step and saving a checkpoint (Ctrl-C again to force)…", style::warn("stopping:"));
+        eprintln!(
+            "\n{} finishing the current step and saving a checkpoint (Ctrl-C again to force)…",
+            style::warn("stopping:")
+        );
         control.stop();
     });
 }
@@ -170,7 +173,12 @@ fn resolve_resume(ws: &Workspace, r: &str) -> Result<PathBuf> {
     bail!("'{r}' is neither a checkpoint nor a run directory")
 }
 
-pub fn run_one(ws: &Workspace, mut cfg: TrainingConfig, args: &TrainArgs, resume: Option<PathBuf>) -> Result<RunSummary> {
+pub fn run_one(
+    ws: &Workspace,
+    mut cfg: TrainingConfig,
+    args: &TrainArgs,
+    resume: Option<PathBuf>,
+) -> Result<RunSummary> {
     if let Some(n) = args.max_steps {
         cfg.schedule.max_steps = n;
     }
@@ -209,14 +217,17 @@ pub fn run(ws: &Workspace, args: TrainArgs) -> Result<()> {
         (None, Some(m)) => {
             let path = ws.configs_dir().join("models").join(format!("{m}.toml"));
             let recipe: Recipe = toml::from_str(
-                &std::fs::read_to_string(&path).with_context(|| format!("model recipe {} not found", path.display()))?,
+                &std::fs::read_to_string(&path)
+                    .with_context(|| format!("model recipe {} not found", path.display()))?,
             )?;
             heading(&format!("{} — {}", recipe.name, recipe.description));
             for (i, stage) in recipe.stages.iter().enumerate().skip(args.from_stage) {
                 println!("  {} stage {}/{}: {}", style::accent("●"), i + 1, recipe.stages.len(), stage);
                 let cfg = TrainingConfig::load(ws.resolve(stage))?;
                 let s = run_one(ws, cfg, &args, None)?;
-                if s.reason == glimmer_training::StopReason::Cancelled || s.reason == glimmer_training::StopReason::Diverged {
+                if s.reason == glimmer_training::StopReason::Cancelled
+                    || s.reason == glimmer_training::StopReason::Diverged
+                {
                     bail!("stage {} ended with {:?}; not continuing", i + 1, s.reason);
                 }
             }

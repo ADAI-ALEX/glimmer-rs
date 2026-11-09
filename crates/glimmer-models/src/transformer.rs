@@ -26,8 +26,8 @@ use burn::tensor::activation::{gelu, silu};
 use burn::tensor::module::attention;
 use burn::tensor::ops::AttentionModuleOptions;
 use burn::tensor::{Bool, Device, Int, Tensor, TensorData};
-use glimmer_core::config::{FfnKind, InitStrategy, ModelConfig, NormKind};
 use glimmer_core::Rng;
+use glimmer_core::config::{FfnKind, InitStrategy, ModelConfig, NormKind};
 
 /// RMSNorm (`beta == None`) or LayerNorm over the last dimension.
 #[derive(Module, Debug)]
@@ -44,11 +44,7 @@ impl Norm {
             NormKind::RmsNorm => None,
             NormKind::LayerNorm => Some(Param::from_tensor(Tensor::<1>::zeros([d], device))),
         };
-        Self {
-            gamma: Param::from_tensor(ones),
-            beta,
-            eps,
-        }
+        Self { gamma: Param::from_tensor(ones), beta, eps }
     }
 
     pub fn forward(&self, x: Tensor<3>) -> Tensor<3> {
@@ -84,10 +80,7 @@ pub struct KvCache {
 
 impl KvCache {
     pub fn new(n_layers: usize) -> Self {
-        Self {
-            layers: vec![None; n_layers],
-            len: 0,
-        }
+        Self { layers: vec![None; n_layers], len: 0 }
     }
 
     /// Number of positions currently cached.
@@ -123,6 +116,7 @@ impl KvCache {
 }
 
 /// Where queries and keys sit in the sequence.
+#[allow(clippy::large_enum_variant)] // short-lived, one per forward pass
 enum Positions {
     /// Contiguous positions `offset .. offset + T` for every row.
     Offset(usize),
@@ -160,22 +154,15 @@ impl Attention {
         let [b, t, d] = x.dims();
         let (h, dh) = (self.n_heads, self.head_dim);
         let qkv = self.qkv.forward(x);
-        let heads = |i: usize| {
-            qkv.clone()
-                .slice([0..b, 0..t, i * d..(i + 1) * d])
-                .reshape([b, t, h, dh])
-                .swap_dims(1, 2)
-        };
+        let heads =
+            |i: usize| qkv.clone().slice([0..b, 0..t, i * d..(i + 1) * d]).reshape([b, t, h, dh]).swap_dims(1, 2);
         let q = rotate(heads(0), cos, sin);
         let k = rotate(heads(1), cos, sin);
         let v = heads(2);
         let (k, v) = match cache {
             Some(slot) => {
                 let (k, v) = match slot.take() {
-                    Some(prev) => (
-                        Tensor::cat(vec![prev.k, k], 2),
-                        Tensor::cat(vec![prev.v, v], 2),
-                    ),
+                    Some(prev) => (Tensor::cat(vec![prev.k, k], 2), Tensor::cat(vec![prev.v, v], 2)),
                     None => (k, v),
                 };
                 *slot = Some(LayerKv { k: k.clone(), v: v.clone() });
@@ -272,19 +259,13 @@ impl Init<'_> {
     }
 
     fn linear(&mut self, d_in: usize, d_out: usize, cfg: &ModelConfig, residual: bool) -> Linear {
-        let mut lin = LinearConfig::new(d_in, d_out)
-            .with_bias(false)
-            .with_initializer(Initializer::Zeros)
-            .init(self.device);
+        let mut lin =
+            LinearConfig::new(d_in, d_out).with_bias(false).with_initializer(Initializer::Zeros).init(self.device);
         let w = match cfg.init {
             InitStrategy::Xavier => self.xavier([d_in, d_out]),
             InitStrategy::Normal => self.normal([d_in, d_out], cfg.init_std),
             InitStrategy::Scaled => {
-                let std = if residual {
-                    cfg.init_std / (2.0 * cfg.n_layers as f64).sqrt()
-                } else {
-                    cfg.init_std
-                };
+                let std = if residual { cfg.init_std / (2.0 * cfg.n_layers as f64).sqrt() } else { cfg.init_std };
                 self.normal([d_in, d_out], std)
             }
         };
@@ -317,15 +298,11 @@ impl Transformer {
     /// Randomly initialise a model. The same `(cfg, seed)` produces the same weights on any device.
     pub fn init(cfg: &ModelConfig, device: &Device, seed: u64) -> Self {
         cfg.validate().expect("invalid model config");
-        let mut init = Init {
-            rng: Rng::new(seed),
-            device,
-        };
+        let mut init = Init { rng: Rng::new(seed), device };
         let d = cfg.d_model;
-        let mut embed = EmbeddingConfig::new(cfg.vocab_size, d)
-            .with_initializer(Initializer::Zeros)
-            .init(device);
-        let emb_std = if cfg.init == InitStrategy::Xavier { cfg.init_std } else { cfg.init_std };
+        let mut embed = EmbeddingConfig::new(cfg.vocab_size, d).with_initializer(Initializer::Zeros).init(device);
+        // Embeddings use N(0, init_std) under every strategy.
+        let emb_std = cfg.init_std;
         embed.weight = Param::from_tensor(init.normal([cfg.vocab_size, d], emb_std));
         let blocks = (0..cfg.n_layers)
             .map(|_| Block {
@@ -428,10 +405,7 @@ impl Transformer {
         let [b, t, d] = h.dims();
         match &self.head {
             Some(head) => head.forward(h),
-            None => h
-                .reshape([b * t, d])
-                .matmul(self.embed.weight.val().transpose())
-                .reshape([b, t, self.vocab_size]),
+            None => h.reshape([b * t, d]).matmul(self.embed.weight.val().transpose()).reshape([b, t, self.vocab_size]),
         }
     }
 
@@ -480,8 +454,5 @@ pub fn packed_mask(segments: Tensor<2, Int>, n_heads: usize) -> Tensor<4, Bool> 
     let rows = Tensor::<1, Int>::arange(0..t as i64, &device).reshape([t, 1]).expand([t, t]);
     let cols = Tensor::<1, Int>::arange(0..t as i64, &device).reshape([1, t]).expand([t, t]);
     let future = cols.greater(rows).reshape([1, t, t]).expand([b, t, t]);
-    other_segment
-        .bool_or(future)
-        .reshape([b, 1, t, t])
-        .expand([b, n_heads, t, t])
+    other_segment.bool_or(future).reshape([b, 1, t, t]).expand([b, n_heads, t, t])
 }

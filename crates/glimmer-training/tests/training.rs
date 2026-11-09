@@ -1,15 +1,15 @@
 //! Training-loop correctness: learning, resumption, SFT masking and accumulation.
 //! Runs on the pure-Rust CPU backend so it works in CI.
 
+use glimmer_core::Workspace;
 use glimmer_core::config::*;
 use glimmer_core::metrics::{MetricRecord, read_metrics};
-use glimmer_core::Workspace;
 use glimmer_data::manifest::{DatasetKind, DatasetManifest, SplitStats};
 use glimmer_data::sft::{SftExample, write_examples};
 use glimmer_data::split::SplitSpec;
 use glimmer_data::tokens::write_tokens;
-use glimmer_tokenizer::chat::{Message, render_with_mask};
 use glimmer_tokenizer::Tokenizer;
+use glimmer_tokenizer::chat::{Message, render_with_mask};
 use glimmer_training::{StopReason, TrainControl, TrainEvent, TrainOptions, train};
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
@@ -58,48 +58,15 @@ fn pretrain_ws(name: &str) -> (Workspace, Tokenizer) {
 
 fn config(stage: Stage, dataset: &str, steps: usize) -> TrainingConfig {
     TrainingConfig {
-        run: RunConfig {
-            name: "test".into(),
-            stage,
-            seed: 42,
-            backend: BackendKind::Cpu,
-            export_as: None,
-        },
-        model: ModelSpec {
-            preset: Some("micro".into()),
-            context_length: Some(32),
-            ..Default::default()
-        },
-        data: DataConfig {
-            dataset: dataset.into(),
-            tokenizer: None,
-        },
+        run: RunConfig { name: "test".into(), stage, seed: 42, backend: BackendKind::Cpu, export_as: None },
+        model: ModelSpec { preset: Some("micro".into()), context_length: Some(32), ..Default::default() },
+        data: DataConfig { dataset: dataset.into(), tokenizer: None },
         init: InitConfig::default(),
-        optimizer: OptimizerConfig {
-            lr: 3e-3,
-            min_lr: 3e-4,
-            weight_decay: 0.01,
-            ..Default::default()
-        },
-        schedule: ScheduleConfig {
-            kind: LrSchedule::Cosine,
-            warmup_steps: 10,
-            max_steps: steps,
-            decay_fraction: 0.2,
-        },
-        batch: BatchConfig {
-            batch_size: 8,
-            grad_accum: 1,
-        },
-        eval: EvalConfig {
-            every: 25,
-            batches: 2,
-            sample_prompts: false,
-        },
-        checkpoint: CheckpointConfig {
-            every: 0,
-            keep_last: 1,
-        },
+        optimizer: OptimizerConfig { lr: 3e-3, min_lr: 3e-4, weight_decay: 0.01, ..Default::default() },
+        schedule: ScheduleConfig { kind: LrSchedule::Cosine, warmup_steps: 10, max_steps: steps, decay_fraction: 0.2 },
+        batch: BatchConfig { batch_size: 8, grad_accum: 1 },
+        eval: EvalConfig { every: 25, batches: 2, sample_prompts: false },
+        checkpoint: CheckpointConfig { every: 0, keep_last: 1 },
         early_stopping: EarlyStoppingConfig::default(),
     }
 }
@@ -157,15 +124,16 @@ fn resumed_training_matches_uninterrupted_run() {
     let ctl = TrainControl::new();
     let mut stopped = false;
     train(&ws, opts, &ctl, &mut |e| {
-        if let TrainEvent::Step(s) = &e {
-            if s.step == 15 && !stopped {
-                stopped = true;
-            }
+        if let TrainEvent::Step(s) = &e
+            && s.step == 15
+            && !stopped
+        {
+            stopped = true;
         }
-        if let TrainEvent::Event(ev) = &e {
-            if ev.message.contains("step-0000015") {
-                ctl.stop();
-            }
+        if let TrainEvent::Event(ev) = &e
+            && ev.message.contains("step-0000015")
+        {
+            ctl.stop();
         }
     })
     .unwrap();
@@ -195,12 +163,7 @@ fn sft_learns_assistant_turns() {
     let ws = temp_ws("sft");
     let tok = Tokenizer::bytes_only();
     tok.save(ws.tokenizers_dir().join("bytes.json")).unwrap();
-    let pairs = [
-        ("hi", "g'day!"),
-        ("bye", "hooroo!"),
-        ("tea?", "cuppa, ta"),
-        ("food?", "snag!"),
-    ];
+    let pairs = [("hi", "g'day!"), ("bye", "hooroo!"), ("tea?", "cuppa, ta"), ("food?", "snag!")];
     let mut examples = Vec::new();
     for _ in 0..8 {
         for (u, a) in pairs {

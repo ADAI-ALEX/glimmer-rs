@@ -68,19 +68,13 @@ pub fn fetch_source(
     let dir = raw_dir(ws, &spec.id);
     std::fs::create_dir_all(&dir)?;
     let prov_path = dir.join("provenance.json");
-    let previous: Option<Provenance> = std::fs::read_to_string(&prov_path)
-        .ok()
-        .and_then(|t| serde_json::from_str(&t).ok());
+    let previous: Option<Provenance> =
+        std::fs::read_to_string(&prov_path).ok().and_then(|t| serde_json::from_str(&t).ok());
     let reuse = |file: &str| -> Option<DownloadRecord> {
         if force || !dir.join(file).is_file() {
             return None;
         }
-        previous
-            .as_ref()?
-            .downloads
-            .iter()
-            .find(|r| r.file == file)
-            .cloned()
+        previous.as_ref()?.downloads.iter().find(|r| r.file == file).cloned()
     };
     let mut records = Vec::new();
     let get = |url: &str, file: &str, max: Option<u64>, log: &mut dyn FnMut(&str)| -> Result<DownloadRecord> {
@@ -123,10 +117,7 @@ pub fn fetch_source(
             log("  local source — nothing to download");
         }
     }
-    let prov = Provenance {
-        source: spec.clone(),
-        downloads: records.clone(),
-    };
+    let prov = Provenance { source: spec.clone(), downloads: records.clone() };
     std::fs::write(&prov_path, serde_json::to_string_pretty(&prov)?)?;
     Ok(records)
 }
@@ -135,21 +126,13 @@ fn read_raw_documents(ws: &Workspace, spec: &SourceSpec, log: &mut dyn FnMut(&st
     let dir = raw_dir(ws, &spec.id);
     let need = |p: &Path| -> Result<()> {
         if !p.is_file() {
-            bail!(
-                "{} not found — run `glimmer data fetch --source {}` first",
-                p.display(),
-                spec.id
-            );
+            bail!("{} not found — run `glimmer data fetch --source {}` first", p.display(), spec.id);
         }
         Ok(())
     };
     let mut docs = Vec::new();
     match &spec.kind {
-        SourceKind::HttpText {
-            document_separator,
-            max_bytes,
-            ..
-        } => {
+        SourceKind::HttpText { document_separator, max_bytes, .. } => {
             let p = dir.join("data.txt");
             need(&p)?;
             let bytes = std::fs::read(&p)?;
@@ -163,18 +146,10 @@ fn read_raw_documents(ws: &Workspace, spec: &SourceSpec, log: &mut dyn FnMut(&st
                 parts.pop();
             }
             for (i, part) in parts.into_iter().enumerate() {
-                docs.push(Document {
-                    id: format!("{}:{i}", spec.id),
-                    text: part.to_string(),
-                });
+                docs.push(Document { id: format!("{}:{i}", spec.id), text: part.to_string() });
             }
         }
-        SourceKind::HttpParquet {
-            text_column,
-            title_column,
-            max_rows,
-            ..
-        } => {
+        SourceKind::HttpParquet { text_column, title_column, max_rows, .. } => {
             let p = dir.join("data.parquet");
             need(&p)?;
             let reader = SerializedFileReader::new(std::fs::File::open(&p)?)
@@ -199,10 +174,7 @@ fn read_raw_documents(ws: &Workspace, spec: &SourceSpec, log: &mut dyn FnMut(&st
                 }
                 if let Some(text) = text {
                     let id = title.unwrap_or_else(|| i.to_string());
-                    docs.push(Document {
-                        id: format!("{}:{id}", spec.id),
-                        text,
-                    });
+                    docs.push(Document { id: format!("{}:{id}", spec.id), text });
                 }
             }
         }
@@ -212,16 +184,11 @@ fn read_raw_documents(ws: &Workspace, spec: &SourceSpec, log: &mut dyn FnMut(&st
                 need(&p)?;
                 let raw = String::from_utf8_lossy(&std::fs::read(&p)?).into_owned();
                 let body = clean::normalize(&clean::strip_gutenberg(&raw.replace("\r\n", "\n")));
-                let paragraphs: Vec<String> = clean::unwrap_paragraphs(&body)
-                    .into_iter()
-                    .filter(|para| !clean::is_boilerplate(para))
-                    .collect();
+                let paragraphs: Vec<String> =
+                    clean::unwrap_paragraphs(&body).into_iter().filter(|para| !clean::is_boilerplate(para)).collect();
                 let chunk = spec.cleaning.chunk_chars.max(1);
                 for (j, d) in clean::chunk_paragraphs(&paragraphs, chunk).into_iter().enumerate() {
-                    docs.push(Document {
-                        id: format!("{}:{}:{j}", spec.id, b.id),
-                        text: d,
-                    });
+                    docs.push(Document { id: format!("{}:{}:{j}", spec.id, b.id), text: d });
                 }
             }
         }
@@ -299,12 +266,7 @@ pub fn prepare_source(ws: &Workspace, spec: &SourceSpec, log: &mut dyn FnMut(&st
         prepared_unix: glimmer_core::time::now_unix(),
     };
     std::fs::write(stats_path(ws, &spec.id), serde_json::to_string_pretty(&stats)?)?;
-    log(&format!(
-        "  ✓ {} documents, {:.1}M characters → {}",
-        kept.len(),
-        chars as f64 / 1e6,
-        ws.relative(&path)
-    ));
+    log(&format!("  ✓ {} documents, {:.1}M characters → {}", kept.len(), chars as f64 / 1e6, ws.relative(&path)));
     Ok(stats)
 }
 
@@ -352,19 +314,14 @@ fn prepare_conversations(
         prepared_unix: glimmer_core::time::now_unix(),
     };
     std::fs::write(stats_path(ws, &spec.id), serde_json::to_string_pretty(&stats)?)?;
-    log(&format!(
-        "  ✓ {} conversations, {messages} messages → {}",
-        convs.kept.len(),
-        ws.relative(&out)
-    ));
+    log(&format!("  ✓ {} conversations, {messages} messages → {}", convs.kept.len(), ws.relative(&out)));
     Ok(stats)
 }
 
 pub fn read_documents(ws: &Workspace, id: &str) -> Result<Vec<Document>> {
     let p = corpus_path(ws, id);
-    let f = std::fs::File::open(&p).with_context(|| {
-        format!("{} not found — run `glimmer data prepare --source {id}`", p.display())
-    })?;
+    let f = std::fs::File::open(&p)
+        .with_context(|| format!("{} not found — run `glimmer data prepare --source {id}`", p.display()))?;
     let mut out = Vec::new();
     for line in BufReader::new(f).lines() {
         out.push(serde_json::from_str(&line?)?);
@@ -374,9 +331,8 @@ pub fn read_documents(ws: &Workspace, id: &str) -> Result<Vec<Document>> {
 
 pub fn read_conversations(ws: &Workspace, id: &str) -> Result<Vec<Conversation>> {
     let p = corpus_path(ws, id);
-    let f = std::fs::File::open(&p).with_context(|| {
-        format!("{} not found — run `glimmer data prepare --source {id}`", p.display())
-    })?;
+    let f = std::fs::File::open(&p)
+        .with_context(|| format!("{} not found — run `glimmer data prepare --source {id}`", p.display()))?;
     let mut out = Vec::new();
     for line in BufReader::new(f).lines() {
         out.push(serde_json::from_str(&line?)?);

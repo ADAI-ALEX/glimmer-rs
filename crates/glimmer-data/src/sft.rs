@@ -59,7 +59,9 @@ pub fn read_examples(path: &Path) -> Result<Vec<SftExample>> {
             bail!("{} is truncated", path.display());
         }
         let tokens = bytes[off..off + 2 * len]
-            .chunks_exact(2)
+            .as_chunks::<2>()
+            .0
+            .iter()
             .map(|c| u16::from_le_bytes([c[0], c[1]]) as u32)
             .collect();
         off += 2 * len;

@@ -3,8 +3,8 @@
 use crate::style::{self, bold, dim, heading, kv};
 use anyhow::Result;
 use clap::Args;
-use glimmer_bench::suite::{self, Ctx};
 use glimmer_bench::Measurement;
+use glimmer_bench::suite::{self, Ctx};
 use glimmer_core::config::ModelConfig;
 use glimmer_core::hardware::HardwareReport;
 use glimmer_core::time::format_bytes;
@@ -43,10 +43,7 @@ struct BenchReport {
 }
 
 fn print(m: &Measurement) {
-    let tp = m
-        .throughput()
-        .map(|(v, u)| format!("{:>10.1} {u}", v))
-        .unwrap_or_default();
+    let tp = m.throughput().map(|(v, u)| format!("{:>10.1} {u}", v)).unwrap_or_default();
     println!(
         "  {:<28} {:<34} {:>9.2} ms ± {:>6.2}  (min {:>8.2})  {}",
         m.name,
@@ -78,11 +75,16 @@ pub fn run(ws: &Workspace, args: BenchArgs) -> Result<()> {
         heading(&format!("benchmarks on {}", dev.label()));
         let c = Ctx { device: &dev, warmup, iterations: iters };
         if !args.sweep_batch.is_empty() {
-            let contexts = if args.sweep_context.is_empty() { vec![preset.context_length] } else { args.sweep_context.clone() };
+            let contexts =
+                if args.sweep_context.is_empty() { vec![preset.context_length] } else { args.sweep_context.clone() };
             for &ctx in &contexts {
                 for &b in &args.sweep_batch {
                     let cfg = ModelConfig { context_length: ctx, ..preset.clone() };
-                    let m = suite::train_step(&Ctx { device: &dev, warmup: 3, iterations: if args.quick { 5 } else { 10 } }, &cfg, b);
+                    let m = suite::train_step(
+                        &Ctx { device: &dev, warmup: 3, iterations: if args.quick { 5 } else { 10 } },
+                        &cfg,
+                        b,
+                    );
                     print(&m);
                     all.push(m);
                 }
@@ -147,12 +149,19 @@ pub fn run(ws: &Workspace, args: BenchArgs) -> Result<()> {
         }
     }
     let out = args.out.map(|o| ws.resolve(o)).unwrap_or_else(|| {
-        ws.runs_dir().join("bench").join(format!("{}.json", glimmer_core::time::compact_stamp(glimmer_core::time::now_unix())))
+        ws.runs_dir()
+            .join("bench")
+            .join(format!("{}.json", glimmer_core::time::compact_stamp(glimmer_core::time::now_unix())))
     });
     if let Some(p) = out.parent() {
         std::fs::create_dir_all(p)?;
     }
-    let report = BenchReport { hardware: hw, preset: ModelConfig::preset(&args.preset).unwrap(), measurements: all, unix: glimmer_core::time::now_unix() };
+    let report = BenchReport {
+        hardware: hw,
+        preset: ModelConfig::preset(&args.preset).unwrap(),
+        measurements: all,
+        unix: glimmer_core::time::now_unix(),
+    };
     std::fs::write(&out, serde_json::to_string_pretty(&report)?)?;
     println!("\n  {} {}", dim("results →"), ws.relative(&out));
     Ok(())
@@ -189,7 +198,14 @@ pub fn doctor(ws: &Workspace, args: DoctorArgs) -> Result<()> {
         return Ok(());
     }
     heading("system");
-    kv("os", format!("{} {}", hw.os_version.clone().unwrap_or(hw.os_name.clone()), dim(&hw.kernel_version.clone().unwrap_or_default())));
+    kv(
+        "os",
+        format!(
+            "{} {}",
+            hw.os_version.clone().unwrap_or(hw.os_name.clone()),
+            dim(&hw.kernel_version.clone().unwrap_or_default())
+        ),
+    );
     kv("architecture", &hw.arch);
     kv("cpu", hw.cpu_brand.clone().unwrap_or_else(|| "unknown".into()));
     let cores = match (hw.performance_cores, hw.efficiency_cores) {
@@ -197,7 +213,14 @@ pub fn doctor(ws: &Workspace, args: DoctorArgs) -> Result<()> {
         _ => hw.logical_cores.to_string(),
     };
     kv("cores", cores);
-    kv("memory", format!("{} total · {} available", format_bytes(hw.total_memory_bytes), format_bytes(hw.available_memory_bytes)));
+    kv(
+        "memory",
+        format!(
+            "{} total · {} available",
+            format_bytes(hw.total_memory_bytes),
+            format_bytes(hw.available_memory_bytes)
+        ),
+    );
     match &hw.gpu {
         Some(g) => {
             kv("gpu", format!("{}{}", g.name, g.cores.map(|c| format!(" · {c} cores")).unwrap_or_default()));
@@ -236,15 +259,36 @@ pub fn doctor(ws: &Workspace, args: DoctorArgs) -> Result<()> {
     heading("recommendation");
     let (preset, why) = hw.recommend_preset();
     let cfg = ModelConfig::preset(preset).unwrap();
-    kv("model preset", format!("{} ({:.1}M parameters at vocab 8192)", bold(preset), ModelConfig { vocab_size: 8192, ..cfg }.param_count() as f64 / 1e6));
+    kv(
+        "model preset",
+        format!(
+            "{} ({:.1}M parameters at vocab 8192)",
+            bold(preset),
+            ModelConfig { vocab_size: 8192, ..cfg }.param_count() as f64 / 1e6
+        ),
+    );
     println!("  {}", dim(&why));
 
     heading("workspace");
     kv("root", ws.root.display());
     let datasets = glimmer_data::DatasetManifest::list(ws.datasets_dir());
-    kv("datasets", if datasets.is_empty() { dim("none — run `glimmer data pipeline`") } else { datasets.iter().map(|d| d.0.clone()).collect::<Vec<_>>().join(", ") });
+    kv(
+        "datasets",
+        if datasets.is_empty() {
+            dim("none — run `glimmer data pipeline`")
+        } else {
+            datasets.iter().map(|d| d.0.clone()).collect::<Vec<_>>().join(", ")
+        },
+    );
     let models = glimmer_core::registry::list_models(&ws.models_dir());
-    kv("models", if models.is_empty() { dim("none trained yet") } else { models.iter().map(|m| m.name.clone()).collect::<Vec<_>>().join(", ") });
+    kv(
+        "models",
+        if models.is_empty() {
+            dim("none trained yet")
+        } else {
+            models.iter().map(|m| m.name.clone()).collect::<Vec<_>>().join(", ")
+        },
+    );
     if let Some(s) = glimmer_core::gpu::sample() {
         kv("gpu utilisation now", format!("{:.0}%", s.device_utilization.unwrap_or(0.0)));
     }

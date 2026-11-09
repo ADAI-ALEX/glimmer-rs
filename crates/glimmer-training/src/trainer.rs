@@ -37,6 +37,10 @@ pub struct TrainOptions {
     pub sampler: Option<Sampler>,
     /// Write checkpoints. Disable for short search trials.
     pub save_checkpoints: bool,
+    /// Pause the run once this many steps are complete: evaluate, save a resumable checkpoint
+    /// named `rung`, and return. The schedule still follows `max_steps`, so a later resume
+    /// continues exactly (used by successive halving).
+    pub stop_after_step: Option<usize>,
 }
 
 impl TrainOptions {
@@ -48,6 +52,7 @@ impl TrainOptions {
             device: None,
             sampler: None,
             save_checkpoints: true,
+            stop_after_step: None,
         }
     }
 }
@@ -129,10 +134,7 @@ pub fn resolve_init(ws: &Workspace, reference: &str) -> Result<PathBuf> {
             .map(|rd| {
                 rd.flatten()
                     .map(|e| e.path())
-                    .filter(|p| {
-                        p.file_name()
-                            .is_some_and(|n| n.to_string_lossy().starts_with(&format!("{prefix}-")))
-                    })
+                    .filter(|p| p.file_name().is_some_and(|n| n.to_string_lossy().starts_with(&format!("{prefix}-"))))
                     .collect()
             })
             .unwrap_or_default();
@@ -159,15 +161,15 @@ pub fn resolve_init(ws: &Workspace, reference: &str) -> Result<PathBuf> {
 }
 
 fn read_lineage(dir: &Path) -> Vec<StageRecord> {
-    if let Ok(t) = std::fs::read_to_string(dir.join("lineage.json")) {
-        if let Ok(v) = serde_json::from_str(&t) {
-            return v;
-        }
+    if let Ok(t) = std::fs::read_to_string(dir.join("lineage.json"))
+        && let Ok(v) = serde_json::from_str(&t)
+    {
+        return v;
     }
-    if let Ok(t) = std::fs::read_to_string(dir.join("card.json")) {
-        if let Ok(card) = serde_json::from_str::<ModelCard>(&t) {
-            return card.stages;
-        }
+    if let Ok(t) = std::fs::read_to_string(dir.join("card.json"))
+        && let Ok(card) = serde_json::from_str::<ModelCard>(&t)
+    {
+        return card.stages;
     }
     Vec::new()
 }
@@ -252,10 +254,7 @@ impl RunCtx<'_> {
             "{} · {:.0} GiB{}",
             hw.cpu_brand.clone().unwrap_or_else(|| hw.arch.clone()),
             hw.total_memory_gib(),
-            hw.gpu
-                .as_ref()
-                .map(|g| format!(" · {} ({} GPU cores)", g.name, g.cores.unwrap_or(0)))
-                .unwrap_or_default()
+            hw.gpu.as_ref().map(|g| format!(" · {} ({} GPU cores)", g.name, g.cores.unwrap_or(0))).unwrap_or_default()
         );
         let card = ModelCard {
             name: name.to_string(),
@@ -278,8 +277,7 @@ impl RunCtx<'_> {
             context_length: self.model_cfg.context_length,
             vocab_size: self.model_cfg.vocab_size,
             stages,
-            system_prompt: (self.cfg.run.stage == Stage::Sft)
-                .then(|| glimmer_data::stevie::SYSTEM_PROMPT.to_string()),
+            system_prompt: (self.cfg.run.stage == Stage::Sft).then(|| glimmer_data::stevie::SYSTEM_PROMPT.to_string()),
             hardware: Some(hardware),
             created_unix: glimmer_core::time::now_unix(),
             glimmer_version: glimmer_core::VERSION.to_string(),
@@ -302,10 +300,7 @@ pub fn train(
     // ── Data ────────────────────────────────────────────────────────────────────────────────
     let data_dir = glimmer_data::build::dataset_dir(ws, &cfg.data.dataset);
     let manifest = DatasetManifest::load(&data_dir).with_context(|| {
-        format!(
-            "dataset '{}' is not prepared — run `glimmer data build {}`",
-            cfg.data.dataset, cfg.data.dataset
-        )
+        format!("dataset '{}' is not prepared — run `glimmer data build {}`", cfg.data.dataset, cfg.data.dataset)
     })?;
     let expected_kind = match cfg.run.stage {
         Stage::Pretrain => DatasetKind::Pretrain,
@@ -335,16 +330,22 @@ pub fn train(
     let model_cfg = if let Some(dir) = &opts.resume {
         checkpoint::load_model_config(dir)?
     } else if let Some(dir) = &init_dir {
-        checkpoint::load_model_config(dir)?
+        // The architecture comes from the checkpoint; settings that do not change the weights
+        // (dropout, context length — RoPE has no parameters) may still be overridden.
+        let mut c = checkpoint::load_model_config(dir)?;
+        if let Some(p) = cfg.model.dropout {
+            c.dropout = p;
+        }
+        if let Some(n) = cfg.model.context_length {
+            c.context_length = n;
+        }
+        c.validate()?;
+        c
     } else {
         cfg.model.resolve(tokenizer.vocab_size())?
     };
     if model_cfg.vocab_size != tokenizer.vocab_size() {
-        bail!(
-            "model vocabulary ({}) does not match tokenizer ({})",
-            model_cfg.vocab_size,
-            tokenizer.vocab_size()
-        );
+        bail!("model vocabulary ({}) does not match tokenizer ({})", model_cfg.vocab_size, tokenizer.vocab_size());
     }
 
     // ── Device ──────────────────────────────────────────────────────────────────────────────
@@ -358,20 +359,13 @@ pub fn train(
 
     // ── Run directory ───────────────────────────────────────────────────────────────────────
     let (run_id, run_dir) = if let Some(dir) = &opts.resume {
-        let run_dir = dir
-            .parent()
-            .and_then(|p| p.parent())
-            .context("checkpoint is not inside a run directory")?
-            .to_path_buf();
+        let run_dir =
+            dir.parent().and_then(|p| p.parent()).context("checkpoint is not inside a run directory")?.to_path_buf();
         (run_dir.file_name().unwrap().to_string_lossy().into_owned(), run_dir)
     } else if let Some(dir) = &opts.run_dir {
         (dir.file_name().unwrap().to_string_lossy().into_owned(), dir.clone())
     } else {
-        let id = format!(
-            "{}-{}",
-            cfg.run.name,
-            glimmer_core::time::compact_stamp(glimmer_core::time::now_unix())
-        );
+        let id = format!("{}-{}", cfg.run.name, glimmer_core::time::compact_stamp(glimmer_core::time::now_unix()));
         (id.clone(), ws.runs_dir().join(id))
     };
     std::fs::create_dir_all(&run_dir)?;
@@ -389,9 +383,8 @@ pub fn train(
     };
     let mut optimizer = optim::build(&cfg.optimizer);
     if let Some(dir) = &opts.resume {
-        optimizer = optimizer
-            .load(dir.join("optimizer.bpk"))
-            .map_err(|e| anyhow::anyhow!("loading optimizer state: {e}"))?;
+        optimizer =
+            optimizer.load(dir.join("optimizer.bpk")).map_err(|e| anyhow::anyhow!("loading optimizer state: {e}"))?;
     }
 
     let mut state = match &resume_state {
@@ -463,12 +456,7 @@ pub fn train(
         Ok(())
     };
     let event = |step: usize, kind: EventKind, message: String| {
-        MetricRecord::Event(EventRecord {
-            step,
-            kind,
-            message,
-            unix: glimmer_core::time::now_unix(),
-        })
+        MetricRecord::Event(EventRecord { step, kind, message, unix: glimmer_core::time::now_unix() })
     };
 
     emit(TrainEvent::Started(Box::new(RunInfo {
@@ -510,7 +498,11 @@ pub fn train(
         ),
     )?;
     if let Some(reason) = &compute.fallback_reason {
-        record(&mut metrics, emit, event(state.step, EventKind::Warning, format!("Metal unavailable, using CPU: {reason}")))?;
+        record(
+            &mut metrics,
+            emit,
+            event(state.step, EventKind::Warning, format!("Metal unavailable, using CPU: {reason}")),
+        )?;
     }
 
     let mut monitor = Monitor::new(cfg.schedule.warmup_steps);
@@ -520,6 +512,7 @@ pub fn train(
     let mut last_checkpoint: Option<PathBuf> = None;
     let mut consecutive_bad = 0usize;
     let mut last_loss: Option<f64> = None;
+    let mut last_val_loss: Option<f64> = None;
 
     while state.step < max_steps {
         // ── Controls ────────────────────────────────────────────────────────────────────────
@@ -530,7 +523,11 @@ pub fn train(
                 std::thread::sleep(Duration::from_millis(50));
                 if control.take_checkpoint_request() && opts.save_checkpoints {
                     let p = ctx.save("manual", CheckpointKind::Manual, &model, &optimizer, &state, None)?;
-                    record(&mut metrics, emit, event(state.step, EventKind::Checkpoint, format!("Saved {}", ws.relative(&p))))?;
+                    record(
+                        &mut metrics,
+                        emit,
+                        event(state.step, EventKind::Checkpoint, format!("Saved {}", ws.relative(&p))),
+                    )?;
                 }
             }
             // Paused time does not count towards wall-clock training time.
@@ -546,9 +543,8 @@ pub fn train(
         let t0 = Instant::now();
         let step = state.step;
         let lr = cfg.schedule.lr_at(step, cfg.optimizer.lr, cfg.optimizer.min_lr);
-        let batches: Vec<Batch> = (0..cfg.batch.grad_accum)
-            .map(|_| data.next(cfg.batch.batch_size, &mut state.rng))
-            .collect();
+        let batches: Vec<Batch> =
+            (0..cfg.batch.grad_accum).map(|_| data.next(cfg.batch.batch_size, &mut state.rng)).collect();
         let supervised: usize = batches.iter().map(|b| b.supervised_tokens()).sum();
         let processed: usize = batches.iter().map(|b| b.tokens()).sum();
         if supervised == 0 {
@@ -587,7 +583,11 @@ pub fn train(
                 ),
             )?;
             if consecutive_bad >= 5 {
-                record(&mut metrics, emit, event(step, EventKind::Error, "Training diverged: 5 consecutive non-finite steps".into()))?;
+                record(
+                    &mut metrics,
+                    emit,
+                    event(step, EventKind::Error, "Training diverged: 5 consecutive non-finite steps".into()),
+                )?;
                 reason = StopReason::Diverged;
                 break;
             }
@@ -622,12 +622,12 @@ pub fn train(
 
         // ── Evaluation ──────────────────────────────────────────────────────────────────────
         let is_last = state.step == max_steps;
-        if state.step % cfg.eval.every == 0 || is_last {
+        let at_rung = opts.stop_after_step == Some(state.step);
+        if state.step % cfg.eval.every == 0 || is_last || at_rung {
             let val_loss = evaluate(&model, data.val(), &eval_device);
-            let improved = val_loss.is_finite()
-                && state
-                    .best_val_loss
-                    .is_none_or(|b| val_loss < b - cfg.early_stopping.min_delta);
+            last_val_loss = Some(val_loss);
+            let improved =
+                val_loss.is_finite() && state.best_val_loss.is_none_or(|b| val_loss < b - cfg.early_stopping.min_delta);
             if improved {
                 state.best_val_loss = Some(val_loss);
                 state.best_step = Some(state.step);
@@ -652,7 +652,11 @@ pub fn train(
                 record(
                     &mut metrics,
                     emit,
-                    event(state.step, EventKind::Checkpoint, format!("New best validation loss {val_loss:.4} → checkpoints/best")),
+                    event(
+                        state.step,
+                        EventKind::Checkpoint,
+                        format!("New best validation loss {val_loss:.4} → checkpoints/best"),
+                    ),
                 )?;
             }
             if let Some(sampler) = opts.sampler.as_mut() {
@@ -686,6 +690,11 @@ pub fn train(
             }
         }
 
+        if at_rung && !is_last {
+            reason = StopReason::Paused;
+            break;
+        }
+
         // ── Checkpoints ─────────────────────────────────────────────────────────────────────
         let periodic = cfg.checkpoint.every > 0 && state.step % cfg.checkpoint.every == 0 && !is_last;
         if opts.save_checkpoints && (periodic || control.take_checkpoint_request()) {
@@ -707,6 +716,7 @@ pub fn train(
     if opts.save_checkpoints && state.step > 0 {
         let (name, kind) = match reason {
             StopReason::Cancelled => ("interrupted", CheckpointKind::Interrupted),
+            StopReason::Paused => ("rung", CheckpointKind::Interrupted),
             _ => ("final", CheckpointKind::Final),
         };
         let p = ctx.save(name, kind, &model, &optimizer, &state, None)?;
@@ -716,7 +726,7 @@ pub fn train(
 
     let have_best = best_checkpoint.join("model.bpk").is_file();
     let exported = match (&cfg.run.export_as, opts.save_checkpoints) {
-        (Some(name), true) if reason != StopReason::Diverged => {
+        (Some(name), true) if !matches!(reason, StopReason::Diverged | StopReason::Paused) => {
             let from = if have_best {
                 best_checkpoint.clone()
             } else {
@@ -743,6 +753,7 @@ pub fn train(
         final_train_loss: state.train_loss_ema.value.or(last_loss),
         best_val_loss: state.best_val_loss,
         best_step: state.best_step,
+        last_val_loss,
         best_checkpoint: have_best.then_some(best_checkpoint),
         last_checkpoint,
         wall_secs: state.wall_secs,

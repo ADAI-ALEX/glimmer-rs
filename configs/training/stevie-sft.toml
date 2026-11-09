@@ -1,0 +1,53 @@
+# STEVIE stage 2: supervised conversational fine-tuning on the original Australian corpus.
+#
+# Starts from the best pretraining checkpoint (`run:stevie-pretrain`). Loss is computed only on
+# STEVIE's turns and their closing <|end|>. The dataset is small (~38k tokens), so training is
+# short, validated often, and stopped early on validation loss; the best checkpoint is exported
+# as `models/stevie`. Learning rate, weight decay and dropout come from the hyperparameter
+# study in configs/tuning/stevie-sft-search.toml (see docs/training.md).
+[run]
+name = "stevie-sft"
+stage = "sft"
+seed = 7
+backend = "auto"
+export_as = "stevie"
+
+[model]
+dropout = 0.1
+
+[data]
+dataset = "stevie-sft"
+
+[init]
+from_checkpoint = "run:stevie-pretrain"
+
+[optimizer]
+kind = "adamw"
+lr = 3e-4
+min_lr = 3e-5
+weight_decay = 0.1
+beta1 = 0.9
+beta2 = 0.95
+grad_clip = 1.0
+
+[schedule]
+kind = "cosine"
+warmup_steps = 20
+max_steps = 300
+
+[batch]
+batch_size = 8
+grad_accum = 1
+
+[eval]
+every = 10
+batches = 8
+sample_prompts = true
+
+[checkpoint]
+every = 0
+keep_last = 1
+
+[early_stopping]
+patience = 8
+min_delta = 0.002

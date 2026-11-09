@@ -6,11 +6,8 @@ use sha2::{Digest, Sha256};
 use std::io::{Read, Write};
 use std::path::Path;
 
-pub const USER_AGENT: &str = concat!(
-    "glimmer-rs/",
-    env!("CARGO_PKG_VERSION"),
-    " (dataset fetcher; +https://github.com/ADAI-ALEX/glimmer-rs)"
-);
+pub const USER_AGENT: &str =
+    concat!("glimmer-rs/", env!("CARGO_PKG_VERSION"), " (dataset fetcher; +https://github.com/ADAI-ALEX/glimmer-rs)");
 
 /// What was downloaded, from where, when, and its checksum.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -31,12 +28,7 @@ fn hex(bytes: &[u8]) -> String {
 /// Download `url` to `dest`, reading at most `max_bytes` if given. Writes to a `.part` file and
 /// renames on success so interrupted downloads never look complete. `progress(bytes_so_far)` is
 /// called periodically.
-pub fn fetch(
-    url: &str,
-    dest: &Path,
-    max_bytes: Option<u64>,
-    mut progress: impl FnMut(u64),
-) -> Result<DownloadRecord> {
+pub fn fetch(url: &str, dest: &Path, max_bytes: Option<u64>, mut progress: impl FnMut(u64)) -> Result<DownloadRecord> {
     if let Some(parent) = dest.parent() {
         std::fs::create_dir_all(parent)?;
     }
@@ -82,10 +74,7 @@ pub fn fetch(
     progress(total);
     Ok(DownloadRecord {
         url: url.to_string(),
-        file: dest
-            .file_name()
-            .map(|f| f.to_string_lossy().into_owned())
-            .unwrap_or_default(),
+        file: dest.file_name().map(|f| f.to_string_lossy().into_owned()).unwrap_or_default(),
         bytes: total,
         sha256: hex(&hasher.finalize()),
         truncated: max_bytes.is_some_and(|m| total >= m),
@@ -118,10 +107,7 @@ mod tests {
         std::fs::create_dir_all(&dir).unwrap();
         let p = dir.join("x.txt");
         std::fs::write(&p, b"abc").unwrap();
-        assert_eq!(
-            sha256_file(&p).unwrap(),
-            "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
-        );
+        assert_eq!(sha256_file(&p).unwrap(), "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad");
         std::fs::remove_dir_all(dir).ok();
     }
 }

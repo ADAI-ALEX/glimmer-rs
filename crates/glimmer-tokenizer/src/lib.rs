@@ -80,17 +80,13 @@ pub struct Tokenizer {
 
 impl std::fmt::Debug for Tokenizer {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Tokenizer")
-            .field("vocab_size", &self.vocab_size())
-            .field("merges", &self.merges.len())
-            .finish()
+        f.debug_struct("Tokenizer").field("vocab_size", &self.vocab_size()).field("merges", &self.merges.len()).finish()
     }
 }
 
 impl Clone for Tokenizer {
     fn clone(&self) -> Self {
-        Self::from_merges(self.merges.clone(), self.metadata.clone())
-            .expect("cloning a valid tokenizer")
+        Self::from_merges(self.merges.clone(), self.metadata.clone()).expect("cloning a valid tokenizer")
     }
 }
 
@@ -99,10 +95,7 @@ const CACHE_LIMIT: usize = 200_000;
 impl Tokenizer {
     /// Build a tokenizer from a merge list.
     pub fn from_merges(merges: Vec<(u32, u32)>, metadata: TokenizerMetadata) -> Result<Self> {
-        let mut token_bytes: Vec<Vec<u8>> = SPECIAL_TOKENS
-            .iter()
-            .map(|s| s.as_bytes().to_vec())
-            .collect();
+        let mut token_bytes: Vec<Vec<u8>> = SPECIAL_TOKENS.iter().map(|s| s.as_bytes().to_vec()).collect();
         token_bytes.extend((0u16..256).map(|b| vec![b as u8]));
         let mut merge_map = HashMap::with_capacity(merges.len());
         for (rank, &(a, b)) in merges.iter().enumerate() {
@@ -117,13 +110,7 @@ impl Tokenizer {
                 bail!("duplicate merge ({a}, {b})");
             }
         }
-        Ok(Self {
-            merges,
-            merge_map,
-            token_bytes,
-            metadata,
-            cache: RwLock::new(HashMap::new()),
-        })
+        Ok(Self { merges, merge_map, token_bytes, metadata, cache: RwLock::new(HashMap::new()) })
     }
 
     /// A tokenizer with no merges (pure bytes). Useful for tests.
@@ -168,10 +155,10 @@ impl Tokenizer {
         while ids.len() >= 2 {
             let mut best: Option<(u32, usize)> = None;
             for i in 0..ids.len() - 1 {
-                if let Some(&m) = self.merge_map.get(&(ids[i], ids[i + 1])) {
-                    if best.is_none_or(|(bm, _)| m < bm) {
-                        best = Some((m, i));
-                    }
+                if let Some(&m) = self.merge_map.get(&(ids[i], ids[i + 1]))
+                    && best.is_none_or(|(bm, _)| m < bm)
+                {
+                    best = Some((m, i));
                 }
             }
             let Some((merged, _)) = best else { break };
@@ -278,10 +265,9 @@ impl Tokenizer {
 
     pub fn load(path: impl AsRef<Path>) -> Result<Self> {
         let path = path.as_ref();
-        let bytes = std::fs::read(path)
-            .with_context(|| format!("reading tokenizer {}", path.display()))?;
-        let file: TokenizerFile = serde_json::from_slice(&bytes)
-            .with_context(|| format!("parsing tokenizer {}", path.display()))?;
+        let bytes = std::fs::read(path).with_context(|| format!("reading tokenizer {}", path.display()))?;
+        let file: TokenizerFile =
+            serde_json::from_slice(&bytes).with_context(|| format!("parsing tokenizer {}", path.display()))?;
         if file.format != "glimmer-bytelevel-bpe" || file.version != 1 {
             bail!("unsupported tokenizer format {} v{}", file.format, file.version);
         }
@@ -308,11 +294,7 @@ mod tests {
             .repeat(20);
         train(
             [corpus.as_str()].into_iter(),
-            &TrainerConfig {
-                vocab_size: 8 + 256 + 60,
-                min_frequency: 2,
-                ..Default::default()
-            },
+            &TrainerConfig { vocab_size: 8 + 256 + 60, min_frequency: 2, ..Default::default() },
         )
         .unwrap()
     }

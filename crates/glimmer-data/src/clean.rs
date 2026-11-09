@@ -103,15 +103,13 @@ pub fn strip_gutenberg(text: &str) -> String {
     };
     let is_end = |l: &str| {
         let u = l.to_uppercase();
-        u.contains("*** END OF") || u.contains("***END OF") || u.contains("END OF THE PROJECT GUTENBERG")
+        u.contains("*** END OF")
+            || u.contains("***END OF")
+            || u.contains("END OF THE PROJECT GUTENBERG")
             || u.contains("END OF PROJECT GUTENBERG")
     };
     let start = lines.iter().position(|l| is_start(l)).map(|i| i + 1).unwrap_or(0);
-    let end = lines[start..]
-        .iter()
-        .position(|l| is_end(l))
-        .map(|i| start + i)
-        .unwrap_or(lines.len());
+    let end = lines[start..].iter().position(|l| is_end(l)).map(|i| start + i).unwrap_or(lines.len());
     lines[start..end].join("\n")
 }
 
@@ -137,21 +135,13 @@ fn is_boilerplate_paragraph(p: &str) -> bool {
 pub fn unwrap_paragraphs(text: &str) -> Vec<String> {
     let mut out = Vec::new();
     for para in text.split("\n\n") {
-        let lines: Vec<&str> = para
-            .lines()
-            .map(|l| l.trim())
-            .filter(|l| !l.is_empty())
-            .collect();
+        let lines: Vec<&str> = para.lines().map(|l| l.trim()).filter(|l| !l.is_empty()).collect();
         if lines.is_empty() {
             continue;
         }
         let short = lines.iter().filter(|l| l.chars().count() < 50).count();
         let verse = lines.len() >= 2 && short * 10 >= lines.len() * 7;
-        let joined = if verse {
-            lines.join("\n")
-        } else {
-            lines.join(" ")
-        };
+        let joined = if verse { lines.join("\n") } else { lines.join(" ") };
         // Strip italics markers and illustration tags.
         let cleaned = joined.replace('_', "");
         if cleaned.starts_with("[Illustration") || cleaned.starts_with("[Footnote") {
@@ -193,10 +183,7 @@ pub enum Rejection {
 /// Apply paragraph-level blocklist filtering and document-level quality filters.
 pub fn filter_document(text: &str, spec: &CleaningSpec) -> Result<String, Rejection> {
     let text = if spec.blocklist && contains_blocked(text) {
-        text.split("\n\n")
-            .filter(|p| !contains_blocked(p))
-            .collect::<Vec<_>>()
-            .join("\n\n")
+        text.split("\n\n").filter(|p| !contains_blocked(p)).collect::<Vec<_>>().join("\n\n")
     } else {
         text.to_string()
     };
@@ -272,15 +259,9 @@ mod tests {
 
     #[test]
     fn quality_filters() {
-        let spec = CleaningSpec {
-            min_chars: 10,
-            ..Default::default()
-        };
+        let spec = CleaningSpec { min_chars: 10, ..Default::default() };
         assert_eq!(filter_document("short", &spec), Err(Rejection::TooShort));
-        assert_eq!(
-            filter_document("1234 5678 9012 3456 7890 !!!!", &spec),
-            Err(Rejection::LowAlpha)
-        );
+        assert_eq!(filter_document("1234 5678 9012 3456 7890 !!!!", &spec), Err(Rejection::LowAlpha));
         assert!(filter_document("A perfectly fine sentence about wombats.", &spec).is_ok());
     }
 }

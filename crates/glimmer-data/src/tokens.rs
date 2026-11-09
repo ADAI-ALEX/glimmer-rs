@@ -35,8 +35,7 @@ pub struct TokenFile {
 
 impl TokenFile {
     pub fn open(path: &Path) -> Result<Self> {
-        let file = std::fs::File::open(path)
-            .with_context(|| format!("opening token file {}", path.display()))?;
+        let file = std::fs::File::open(path).with_context(|| format!("opening token file {}", path.display()))?;
         // SAFETY: the file is opened read-only and GLIMMER never mutates token files after they
         // are written; concurrent external modification would be a user error.
         let mmap = unsafe { Mmap::map(&file)? };
@@ -70,7 +69,7 @@ impl TokenFile {
     /// Copy tokens `[start, start + n)` into `out` as `u32`.
     pub fn read_into(&self, start: usize, n: usize, out: &mut Vec<u32>) {
         let bytes = &self.mmap[HEADER + 2 * start..HEADER + 2 * (start + n)];
-        out.extend(bytes.chunks_exact(2).map(|c| u16::from_le_bytes([c[0], c[1]]) as u32));
+        out.extend(bytes.as_chunks::<2>().0.iter().map(|c| u16::from_le_bytes([c[0], c[1]]) as u32));
     }
 }
 

@@ -54,10 +54,7 @@ pub fn sample() -> Option<GpuSample> {
     if !cfg!(target_os = "macos") {
         return None;
     }
-    let out = Command::new("ioreg")
-        .args(["-r", "-d", "1", "-w", "0", "-c", "IOAccelerator"])
-        .output()
-        .ok()?;
+    let out = Command::new("ioreg").args(["-r", "-d", "1", "-w", "0", "-c", "IOAccelerator"]).output().ok()?;
     parse_performance_statistics(&String::from_utf8_lossy(&out.stdout))
 }
 

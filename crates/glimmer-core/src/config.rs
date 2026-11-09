@@ -155,10 +155,7 @@ impl ModelConfig {
         };
         match name {
             // Debugging and correctness tests: compiles and trains in seconds on any backend.
-            "micro" => Some(ModelConfig {
-                vocab_size: 512,
-                ..base("micro", 64, 2, 4, 192, 64)
-            }),
+            "micro" => Some(ModelConfig { vocab_size: 512, ..base("micro", 64, 2, 4, 192, 64) }),
             // The local demonstration size for STEVIE on a 16 GB Apple Silicon laptop.
             "tiny" => Some(base("tiny", 384, 6, 6, 1024, 512)),
             // Larger experiments when memory and time permit.
@@ -204,14 +201,10 @@ impl ModelConfig {
         if self.d_model == 0 || self.n_layers == 0 || self.n_heads == 0 || self.d_ff == 0 {
             bail!("model dimensions must be non-zero");
         }
-        if self.d_model % self.n_heads != 0 {
-            bail!(
-                "d_model ({}) must be divisible by n_heads ({})",
-                self.d_model,
-                self.n_heads
-            );
+        if !self.d_model.is_multiple_of(self.n_heads) {
+            bail!("d_model ({}) must be divisible by n_heads ({})", self.d_model, self.n_heads);
         }
-        if self.head_dim() % 2 != 0 {
+        if !self.head_dim().is_multiple_of(2) {
             bail!("head dimension must be even for rotary embeddings");
         }
         if self.context_length < 2 {
@@ -247,9 +240,8 @@ impl ModelSpec {
     /// Resolve into a concrete [`ModelConfig`] using the tokenizer's vocabulary size.
     pub fn resolve(&self, vocab_size: usize) -> Result<ModelConfig> {
         let preset = self.preset.as_deref().unwrap_or("tiny");
-        let mut cfg = ModelConfig::preset(preset).with_context(|| {
-            format!("unknown model preset '{preset}' (available: {PRESETS:?})")
-        })?;
+        let mut cfg = ModelConfig::preset(preset)
+            .with_context(|| format!("unknown model preset '{preset}' (available: {PRESETS:?})"))?;
         cfg.vocab_size = vocab_size;
         macro_rules! apply {
             ($($f:ident),*) => { $( if let Some(v) = self.$f { cfg.$f = v; } )* };
@@ -268,10 +260,8 @@ impl ModelSpec {
             init_std,
             tie_embeddings
         );
-        let customised = self.d_model.is_some()
-            || self.n_layers.is_some()
-            || self.n_heads.is_some()
-            || self.d_ff.is_some();
+        let customised =
+            self.d_model.is_some() || self.n_layers.is_some() || self.n_heads.is_some() || self.d_ff.is_some();
         if customised {
             cfg.name = format!("{preset}*");
         }
@@ -402,12 +392,7 @@ fn default_decay_fraction() -> f64 {
 
 impl Default for ScheduleConfig {
     fn default() -> Self {
-        Self {
-            kind: LrSchedule::Cosine,
-            warmup_steps: 100,
-            max_steps: 1000,
-            decay_fraction: default_decay_fraction(),
-        }
+        Self { kind: LrSchedule::Cosine, warmup_steps: 100, max_steps: 1000, decay_fraction: default_decay_fraction() }
     }
 }
 
@@ -423,9 +408,7 @@ impl ScheduleConfig {
         let progress = ((step - self.warmup_steps.min(step)) as f64 / decay_steps).clamp(0.0, 1.0);
         match self.kind {
             LrSchedule::Constant => peak,
-            LrSchedule::Cosine => {
-                min + 0.5 * (peak - min) * (1.0 + (std::f64::consts::PI * progress).cos())
-            }
+            LrSchedule::Cosine => min + 0.5 * (peak - min) * (1.0 + (std::f64::consts::PI * progress).cos()),
             LrSchedule::Linear => peak + (min - peak) * progress,
             LrSchedule::Wsd => {
                 let start = 1.0 - self.decay_fraction.clamp(0.0, 1.0);
@@ -456,10 +439,7 @@ fn default_one() -> usize {
 
 impl Default for BatchConfig {
     fn default() -> Self {
-        Self {
-            batch_size: 16,
-            grad_accum: 1,
-        }
+        Self { batch_size: 16, grad_accum: 1 }
     }
 }
 
@@ -477,11 +457,7 @@ pub struct EvalConfig {
 
 impl Default for EvalConfig {
     fn default() -> Self {
-        Self {
-            every: 200,
-            batches: 20,
-            sample_prompts: false,
-        }
+        Self { every: 200, batches: 20, sample_prompts: false }
     }
 }
 
@@ -501,10 +477,7 @@ fn default_keep() -> usize {
 
 impl Default for CheckpointConfig {
     fn default() -> Self {
-        Self {
-            every: 500,
-            keep_last: 2,
-        }
+        Self { every: 500, keep_last: 2 }
     }
 }
 
@@ -524,10 +497,7 @@ fn default_min_delta() -> f64 {
 
 impl Default for EarlyStoppingConfig {
     fn default() -> Self {
-        Self {
-            patience: 0,
-            min_delta: default_min_delta(),
-        }
+        Self { patience: 0, min_delta: default_min_delta() }
     }
 }
 
@@ -595,8 +565,8 @@ pub struct TrainingConfig {
 impl TrainingConfig {
     pub fn load(path: impl AsRef<Path>) -> Result<Self> {
         let path = path.as_ref();
-        let text = std::fs::read_to_string(path)
-            .with_context(|| format!("reading training config {}", path.display()))?;
+        let text =
+            std::fs::read_to_string(path).with_context(|| format!("reading training config {}", path.display()))?;
         Self::from_toml(&text).with_context(|| format!("parsing {}", path.display()))
     }
 
@@ -673,22 +643,13 @@ mod tests {
 
     #[test]
     fn invalid_heads_rejected() {
-        let spec = ModelSpec {
-            preset: Some("micro".into()),
-            n_heads: Some(3),
-            ..Default::default()
-        };
+        let spec = ModelSpec { preset: Some("micro".into()), n_heads: Some(3), ..Default::default() };
         assert!(spec.resolve(512).is_err());
     }
 
     #[test]
     fn cosine_schedule_shape() {
-        let s = ScheduleConfig {
-            kind: LrSchedule::Cosine,
-            warmup_steps: 10,
-            max_steps: 110,
-            decay_fraction: 0.2,
-        };
+        let s = ScheduleConfig { kind: LrSchedule::Cosine, warmup_steps: 10, max_steps: 110, decay_fraction: 0.2 };
         assert!((s.lr_at(0, 1.0, 0.1) - 0.1).abs() < 1e-12);
         assert!((s.lr_at(9, 1.0, 0.1) - 1.0).abs() < 1e-12);
         assert!((s.lr_at(10, 1.0, 0.1) - 1.0).abs() < 1e-12);
@@ -706,12 +667,7 @@ mod tests {
 
     #[test]
     fn wsd_schedule_shape() {
-        let s = ScheduleConfig {
-            kind: LrSchedule::Wsd,
-            warmup_steps: 0,
-            max_steps: 100,
-            decay_fraction: 0.2,
-        };
+        let s = ScheduleConfig { kind: LrSchedule::Wsd, warmup_steps: 0, max_steps: 100, decay_fraction: 0.2 };
         assert_eq!(s.lr_at(10, 1.0, 0.0), 1.0);
         assert_eq!(s.lr_at(79, 1.0, 0.0), 1.0);
         assert!((s.lr_at(90, 1.0, 0.0) - 0.5).abs() < 1e-9);

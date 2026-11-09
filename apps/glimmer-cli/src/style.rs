@@ -9,11 +9,7 @@ fn enabled() -> bool {
 }
 
 fn paint(code: &str, s: &str) -> String {
-    if enabled() {
-        format!("\x1b[{code}m{s}\x1b[0m")
-    } else {
-        s.to_string()
-    }
+    if enabled() { format!("\x1b[{code}m{s}\x1b[0m") } else { s.to_string() }
 }
 
 pub fn bold(s: &str) -> String {

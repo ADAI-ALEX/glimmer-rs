@@ -30,9 +30,7 @@ pub struct Measurement {
 
 impl Measurement {
     pub fn throughput(&self) -> Option<(f64, String)> {
-        self.work
-            .as_ref()
-            .map(|(w, unit)| (w / (self.mean_ms / 1e3), format!("{unit}/s")))
+        self.work.as_ref().map(|(w, unit)| (w / (self.mean_ms / 1e3), format!("{unit}/s")))
     }
 }
 

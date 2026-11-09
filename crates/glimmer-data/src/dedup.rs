@@ -35,9 +35,7 @@ pub fn exact_hash(text: &str) -> u64 {
 /// Indices of documents to keep after exact deduplication (first occurrence wins).
 pub fn exact_dedup<S: AsRef<str>>(docs: &[S]) -> Vec<usize> {
     let mut seen = HashSet::with_capacity(docs.len());
-    (0..docs.len())
-        .filter(|&i| seen.insert(exact_hash(docs[i].as_ref())))
-        .collect()
+    (0..docs.len()).filter(|&i| seen.insert(exact_hash(docs[i].as_ref()))).collect()
 }
 
 /// MinHash parameters.
@@ -51,11 +49,7 @@ pub struct MinHashConfig {
 impl Default for MinHashConfig {
     fn default() -> Self {
         // 32 bands × 4 rows: candidate probability ≈ 1-(1-J^4)^32, ~0.96 at J=0.6.
-        Self {
-            num_hashes: 128,
-            bands: 32,
-            shingle: 3,
-        }
+        Self { num_hashes: 128, bands: 32, shingle: 3 }
     }
 }
 
@@ -69,11 +63,8 @@ fn mix(mut x: u64) -> u64 {
 /// MinHash signature of a text's word shingles.
 pub fn signature(text: &str, cfg: &MinHashConfig) -> Vec<u64> {
     let canon = canonical(text);
-    let words: Vec<&str> = canon
-        .split(' ')
-        .map(|w| w.trim_matches(|c: char| !c.is_alphanumeric()))
-        .filter(|w| !w.is_empty())
-        .collect();
+    let words: Vec<&str> =
+        canon.split(' ').map(|w| w.trim_matches(|c: char| !c.is_alphanumeric())).filter(|w| !w.is_empty()).collect();
     let mut shingles: Vec<u64> = Vec::new();
     if words.len() < cfg.shingle {
         shingles.push(fnv1a(words.join(" ").as_bytes()));

@@ -61,13 +61,13 @@ pub fn pretokenize(text: &str) -> Vec<&str> {
     while i < n {
         let (start, c) = chars[i];
         // Contractions.
-        if c == '\'' {
-            if let Some(len) = contraction_len(&text[start..]) {
-                out.push(&text[start..start + len]);
-                // Advance by however many chars the contraction spans (all ASCII).
-                i += len;
-                continue;
-            }
+        if c == '\''
+            && let Some(len) = contraction_len(&text[start..])
+        {
+            out.push(&text[start..start + len]);
+            // Advance by however many chars the contraction spans (all ASCII).
+            i += len;
+            continue;
         }
         let cls = class(c);
         match cls {
@@ -96,8 +96,7 @@ pub fn pretokenize(text: &str) -> Vec<&str> {
                         }
                         Class::Digit => k += 1,
                         Class::Other => {
-                            if chars[k].1 == '\'' && contraction_len(&text[chars[k].0..]).is_some()
-                            {
+                            if chars[k].1 == '\'' && contraction_len(&text[chars[k].0..]).is_some() {
                                 // " 's" — keep the space alone; the contraction is handled next.
                                 out.push(&text[byte_at(i)..byte_at(j)]);
                                 i = j;
@@ -128,8 +127,7 @@ pub fn pretokenize(text: &str) -> Vec<&str> {
             Class::Other => {
                 let mut j = i;
                 while j < n && class(chars[j].1) == Class::Other {
-                    if j > i && chars[j].1 == '\'' && contraction_len(&text[chars[j].0..]).is_some()
-                    {
+                    if j > i && chars[j].1 == '\'' && contraction_len(&text[chars[j].0..]).is_some() {
                         break;
                     }
                     j += 1;
@@ -154,10 +152,7 @@ mod tests {
 
     #[test]
     fn basic_words_and_spaces() {
-        assert_eq!(
-            pretokenize("How ya going, mate?"),
-            vec!["How", " ya", " going", ",", " mate", "?"]
-        );
+        assert_eq!(pretokenize("How ya going, mate?"), vec!["How", " ya", " going", ",", " mate", "?"]);
     }
 
     #[test]

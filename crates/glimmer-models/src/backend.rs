@@ -85,12 +85,7 @@ pub fn verify(device: &Device) -> Result<Verification> {
         .zip(expected.iter().chain(expected.iter()))
         .map(|(x, y)| (x - y).abs())
         .fold(0f32, f32::max);
-    Ok(Verification {
-        max_abs_error: err,
-        passed: err < 1e-3 && got.len() == expected.len(),
-        cold_ms,
-        warm_ms,
-    })
+    Ok(Verification { max_abs_error: err, passed: err < 1e-3 && got.len() == expected.len(), cold_ms, warm_ms })
 }
 
 fn cpu_device() -> Result<ComputeDevice> {
@@ -126,26 +121,14 @@ fn metal_device() -> Result<ComputeDevice> {
         probe.map_err(|_| anyhow!("Metal device initialisation panicked (no compatible GPU?)"))?;
     let verification = verification?;
     if !verification.passed {
-        bail!(
-            "Metal backend failed its numerical self-test (max error {})",
-            verification.max_abs_error
-        );
+        bail!("Metal backend failed its numerical self-test (max error {})", verification.max_abs_error);
     }
     // `Device::metal` pins wgpu's Metal backend with CubeCL's native MSL compiler; device
     // initialisation fails (rather than silently falling back to WGSL) if MSL is unavailable.
     // The runtime's identity "fingerprint" is only a cache namespace, so it is not reported.
-    let adapter = identity
-        .map(|id| id.name)
-        .unwrap_or_else(|| "unknown Metal adapter".into());
+    let adapter = identity.map(|id| id.name).unwrap_or_else(|| "unknown Metal adapter".into());
     let target = Some("CubeCL kernels → MSL → Metal (wgpu), with kernel fusion + autotune".to_string());
-    Ok(ComputeDevice {
-        device,
-        kind: BackendKind::Metal,
-        adapter,
-        target,
-        verification,
-        fallback_reason: None,
-    })
+    Ok(ComputeDevice { device, kind: BackendKind::Metal, adapter, target, verification, fallback_reason: None })
 }
 
 /// Open and verify a backend. `Auto` prefers Metal and falls back to the CPU with a recorded

@@ -9,11 +9,7 @@ use glimmer_tokenizer::chat::Message;
 
 fn engine(seed: u64) -> Engine {
     let tok = Tokenizer::bytes_only();
-    let cfg = ModelConfig {
-        vocab_size: tok.vocab_size(),
-        context_length: 64,
-        ..ModelConfig::preset("micro").unwrap()
-    };
+    let cfg = ModelConfig { vocab_size: tok.vocab_size(), context_length: 64, ..ModelConfig::preset("micro").unwrap() };
     let dev = backend::select(glimmer_core::BackendKind::Cpu).unwrap();
     let model = Transformer::init(&cfg, &dev.device, seed);
     Engine::from_parts(model, tok, cfg, dev, "test", std::path::Path::new("."), None)
@@ -87,11 +83,11 @@ fn cancellation_stops_generation() {
 #[test]
 fn multi_turn_chat_reuses_kv_cache() {
     let mut e = engine(9);
-    let mut s = ChatSession::new("test", Some("SYS".into()), SamplingConfig {
-        max_new_tokens: 8,
-        seed: 11,
-        ..Default::default()
-    });
+    let mut s = ChatSession::new(
+        "test",
+        Some("SYS".into()),
+        SamplingConfig { max_new_tokens: 8, seed: 11, ..Default::default() },
+    );
     let (g1, _) = s.respond(&mut e, "first", |_| true).unwrap();
     assert_eq!(g1.stats.reused_tokens, 0);
     let (g2, _) = s.respond(&mut e, "second", |_| true).unwrap();

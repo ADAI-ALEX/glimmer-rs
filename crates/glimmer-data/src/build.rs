@@ -44,12 +44,7 @@ pub struct SftOptions {
 
 impl Default for SftOptions {
     fn default() -> Self {
-        Self {
-            system_prompt_probability: 0.5,
-            max_tokens: 512,
-            eval_prompts: None,
-            leakage_threshold: 0.7,
-        }
+        Self { system_prompt_probability: 0.5, max_tokens: 512, eval_prompts: None, leakage_threshold: 0.7 }
     }
 }
 
@@ -165,12 +160,7 @@ pub fn train_tokenizer(
     eprintln!();
     let path = ws.tokenizers_dir().join(format!("{}.json", spec.name));
     tok.save(&path)?;
-    log(&format!(
-        "  ✓ vocab {} in {:.1}s → {}",
-        tok.vocab_size(),
-        started.elapsed().as_secs_f64(),
-        ws.relative(&path)
-    ));
+    log(&format!("  ✓ vocab {} in {:.1}s → {}", tok.vocab_size(), started.elapsed().as_secs_f64(), ws.relative(&path)));
     Ok(path)
 }
 
@@ -219,7 +209,8 @@ pub fn build_dataset(ws: &Workspace, spec: &DatasetSpec, log: &mut dyn FnMut(&st
         splits: BTreeMap::new(),
         sources: Vec::new(),
         preprocessing: vec![
-            "Unicode NFC normalisation; quotes, spaces and newlines unified; control and zero-width characters removed".into(),
+            "Unicode NFC normalisation; quotes, spaces and newlines unified; control and zero-width characters removed"
+                .into(),
             "Quality filters: length bounds and minimum alphabetic ratio".into(),
             "Paragraphs containing blocklisted slurs dropped (datasets/filters/blocklist.rot13)".into(),
             "Exact deduplication (FNV-1a of case/whitespace-normalised text)".into(),
@@ -291,19 +282,10 @@ fn build_pretrain(
             stream.push(ENDOFTEXT as u16);
         }
         write_tokens(&out.join(format!("{}.bin", split.as_str())), &stream)?;
-        log(&format!(
-            "  {}: {} documents, {:.2}M tokens",
-            split.as_str(),
-            docs.len(),
-            stream.len() as f64 / 1e6
-        ));
+        log(&format!("  {}: {} documents, {:.2}M tokens", split.as_str(), docs.len(), stream.len() as f64 / 1e6));
         manifest.splits.insert(
             split.as_str().into(),
-            SplitStats {
-                documents: docs.len(),
-                tokens: stream.len() as u64,
-                ..Default::default()
-            },
+            SplitStats { documents: docs.len(), tokens: stream.len() as u64, ..Default::default() },
         );
     }
     Ok(())
@@ -326,9 +308,7 @@ fn build_sft(
         "Chat template <|system|>/<|user|>/<|assistant|>/<|end|>; loss on assistant tokens and their <|end|> only; system prompt on {:.0}% of examples",
         opts.system_prompt_probability * 100.0
     ));
-    manifest
-        .preprocessing
-        .push("Near-duplicate conversations removed with MinHash (word 3-gram shingles)".into());
+    manifest.preprocessing.push("Near-duplicate conversations removed with MinHash (word 3-gram shingles)".into());
     let mut per_split: BTreeMap<Split, (Vec<SftExample>, SplitStats)> = BTreeMap::new();
     let mut dropped_long = 0usize;
     let mut leaked = 0usize;
@@ -374,9 +354,7 @@ fn build_sft(
         log(&format!("  ! {dropped_long} conversations exceeded {} tokens and were dropped", opts.max_tokens));
     }
     if leaked > 0 {
-        manifest
-            .preprocessing
-            .push(format!("{leaked} conversations excluded for overlapping held-out eval prompts"));
+        manifest.preprocessing.push(format!("{leaked} conversations excluded for overlapping held-out eval prompts"));
     }
     for split in Split::ALL {
         let (examples, stats) = per_split.remove(&split).unwrap_or_default();

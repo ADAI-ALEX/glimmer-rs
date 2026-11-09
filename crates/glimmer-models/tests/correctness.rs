@@ -11,11 +11,7 @@ use glimmer_models::store::{load_weights, save_weights};
 use glimmer_models::transformer::Transformer;
 
 fn micro() -> ModelConfig {
-    ModelConfig {
-        vocab_size: 97,
-        context_length: 32,
-        ..ModelConfig::preset("micro").unwrap()
-    }
+    ModelConfig { vocab_size: 97, context_length: 32, ..ModelConfig::preset("micro").unwrap() }
 }
 
 fn cpu() -> Device {
@@ -46,12 +42,7 @@ fn parameter_count_matches_configuration() {
         (NormKind::LayerNorm, FfnKind::Gelu, false),
         (NormKind::RmsNorm, FfnKind::Gelu, true),
     ] {
-        let cfg = ModelConfig {
-            norm,
-            ffn,
-            tie_embeddings: tie,
-            ..micro()
-        };
+        let cfg = ModelConfig { norm, ffn, tie_embeddings: tie, ..micro() };
         let model = Transformer::init(&cfg, &device, 1);
         assert_eq!(model.num_params(), cfg.param_count(), "{norm:?} {ffn:?} tie={tie}");
     }
@@ -105,19 +96,16 @@ fn packed_segments_are_isolated_and_positions_restart() {
     let v = model.vocab_size();
     let s1: Vec<i64> = vec![4, 8, 15, 16, 23];
     let s2: Vec<i64> = vec![42, 7, 9];
-    let alone1 = to_vec(model.forward(tokens(&[s1.clone()], &device)));
-    let alone2 = to_vec(model.forward(tokens(&[s2.clone()], &device)));
+    let alone1 = to_vec(model.forward(tokens(std::slice::from_ref(&s1), &device)));
+    let alone2 = to_vec(model.forward(tokens(std::slice::from_ref(&s2), &device)));
     // Pack [s1 | s2 | pad pad] into one row of length 10.
     let mut row = s1.clone();
     row.extend(&s2);
     row.extend([0, 0]);
     let segs: Vec<i64> = [1, 1, 1, 1, 1, 2, 2, 2, 0, 0].to_vec();
     let pos: Vec<i64> = [0, 1, 2, 3, 4, 0, 1, 2, 0, 1].to_vec();
-    let packed = to_vec(model.forward_packed(
-        tokens(&[row], &device),
-        tokens(&[pos], &device),
-        tokens(&[segs], &device),
-    ));
+    let packed =
+        to_vec(model.forward_packed(tokens(&[row], &device), tokens(&[pos], &device), tokens(&[segs], &device)));
     assert!(max_diff(&packed[..5 * v], &alone1) < 1e-4, "segment 1 differs when packed");
     assert!(max_diff(&packed[5 * v..8 * v], &alone2) < 1e-4, "segment 2 differs when packed");
 }
@@ -128,7 +116,7 @@ fn kv_cache_matches_full_forward() {
     let model = Transformer::init(&micro(), &device, 17);
     let seq: Vec<i64> = vec![3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5, 8];
     let v = model.vocab_size();
-    let full = to_vec(model.forward(tokens(&[seq.clone()], &device)));
+    let full = to_vec(model.forward(tokens(std::slice::from_ref(&seq), &device)));
     let mut cache = model.new_cache();
     // Prefill 5 tokens, then decode one at a time.
     let mut cached = to_vec(model.forward_cached(tokens(&[seq[..5].to_vec()], &device), &mut cache, false));
@@ -140,7 +128,7 @@ fn kv_cache_matches_full_forward() {
     assert!(max_diff(&cached, &full) < 1e-4, "KV-cached decoding diverges: {}", max_diff(&cached, &full));
     // last_only returns the final position's logits.
     let mut c2 = model.new_cache();
-    let last = to_vec(model.forward_cached(tokens(&[seq.clone()], &device), &mut c2, true));
+    let last = to_vec(model.forward_cached(tokens(std::slice::from_ref(&seq), &device), &mut c2, true));
     assert!(max_diff(&last, &full[(seq.len() - 1) * v..]) < 1e-4);
 }
 
@@ -179,9 +167,7 @@ struct GradCollector<'a> {
 impl ModuleVisitor for GradCollector<'_> {
     fn visit_float<const D: usize>(&mut self, param: &Param<Tensor<D>>) {
         let g = param.val().grad(self.grads);
-        let n = g
-            .map(|g| g.abs().sum().into_scalar::<f32>())
-            .unwrap_or(-1.0);
+        let n = g.map(|g| g.abs().sum().into_scalar::<f32>()).unwrap_or(-1.0);
         self.norms.push((format!("{:?}", param.id), n));
     }
 }
@@ -189,10 +175,7 @@ impl ModuleVisitor for GradCollector<'_> {
 #[test]
 fn gradients_flow_to_every_parameter() {
     let device = cpu().autodiff();
-    let cfg = ModelConfig {
-        tie_embeddings: false,
-        ..micro()
-    };
+    let cfg = ModelConfig { tie_embeddings: false, ..micro() };
     let model = Transformer::init(&cfg, &device, 19);
     let x = tokens(&[vec![1, 5, 9, 13, 17, 21, 25, 29]], &device);
     let y = tokens(&[vec![5, 9, 13, 17, 21, 25, 29, 33]], &device);
@@ -211,10 +194,7 @@ fn gradients_flow_to_every_parameter() {
 fn autodiff_gradients_match_finite_differences() {
     // Central differences on the token-embedding matrix of a micro model.
     let device = cpu().autodiff();
-    let cfg = ModelConfig {
-        n_layers: 1,
-        ..micro()
-    };
+    let cfg = ModelConfig { n_layers: 1, ..micro() };
     let model = Transformer::init(&cfg, &device, 23);
     let x_rows = vec![vec![3i64, 7, 11, 2, 9, 4]];
     let y_rows = vec![vec![7i64, 11, 2, 9, 4, 1]];
@@ -245,11 +225,7 @@ fn autodiff_gradients_match_finite_differences() {
         };
         let numeric = (eval(eps) - eval(-eps)) / (2.0 * eps);
         let rel = (numeric - analytic[i]).abs() / analytic[i].abs().max(1e-3);
-        assert!(
-            rel < 0.05,
-            "coordinate {i}: analytic {} vs numeric {numeric} (rel err {rel})",
-            analytic[i]
-        );
+        assert!(rel < 0.05, "coordinate {i}: analytic {} vs numeric {numeric} (rel err {rel})", analytic[i]);
         checked += 1;
     }
     assert_eq!(checked, 12);
@@ -287,6 +263,10 @@ fn init_strategies_produce_finite_outputs() {
 /// Metal and on the CPU. Skipped when Metal is unavailable (e.g. Linux CI).
 #[test]
 fn metal_matches_cpu_when_available() {
+    if std::env::var_os("GLIMMER_SKIP_METAL_TESTS").is_some() {
+        eprintln!("GLIMMER_SKIP_METAL_TESTS set — skipping cross-backend test");
+        return;
+    }
     let Ok(metal) = glimmer_models::backend::select(glimmer_core::BackendKind::Metal) else {
         eprintln!("Metal unavailable — skipping cross-backend test");
         return;

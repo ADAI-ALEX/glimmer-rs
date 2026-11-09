@@ -21,9 +21,7 @@ pub mod rng;
 pub mod time;
 pub mod workspace;
 
-pub use config::{
-    BackendKind, DataConfig, LrSchedule, ModelConfig, OptimizerConfig, Stage, TrainingConfig,
-};
+pub use config::{BackendKind, DataConfig, LrSchedule, ModelConfig, OptimizerConfig, Stage, TrainingConfig};
 pub use rng::Rng;
 pub use workspace::Workspace;
 

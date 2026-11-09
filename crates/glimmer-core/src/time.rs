@@ -3,10 +3,7 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
 pub fn now_unix() -> u64 {
-    SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map(|d| d.as_secs())
-        .unwrap_or(0)
+    SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0)
 }
 
 /// Convert days since the Unix epoch to a (year, month, day) civil date.
@@ -29,12 +26,7 @@ pub fn iso8601(unix: u64) -> String {
     let days = (unix / 86_400) as i64;
     let secs = unix % 86_400;
     let (y, m, d) = civil_from_days(days);
-    format!(
-        "{y:04}-{m:02}-{d:02}T{:02}:{:02}:{:02}Z",
-        secs / 3600,
-        (secs / 60) % 60,
-        secs % 60
-    )
+    format!("{y:04}-{m:02}-{d:02}T{:02}:{:02}:{:02}Z", secs / 3600, (secs / 60) % 60, secs % 60)
 }
 
 /// Compact sortable stamp for run ids: `20261109-215203`.
@@ -42,12 +34,7 @@ pub fn compact_stamp(unix: u64) -> String {
     let days = (unix / 86_400) as i64;
     let secs = unix % 86_400;
     let (y, m, d) = civil_from_days(days);
-    format!(
-        "{y:04}{m:02}{d:02}-{:02}{:02}{:02}",
-        secs / 3600,
-        (secs / 60) % 60,
-        secs % 60
-    )
+    format!("{y:04}{m:02}{d:02}-{:02}{:02}{:02}", secs / 3600, (secs / 60) % 60, secs % 60)
 }
 
 /// Human duration: `42s`, `3m 07s`, `2h 05m`.
@@ -74,11 +61,7 @@ pub fn format_bytes(bytes: u64) -> String {
         v /= 1024.0;
         unit += 1;
     }
-    if unit == 0 {
-        format!("{bytes} B")
-    } else {
-        format!("{v:.1} {}", UNITS[unit])
-    }
+    if unit == 0 { format!("{bytes} B") } else { format!("{v:.1} {}", UNITS[unit]) }
 }
 
 /// Human count: `13.8M`, `2.1B`, `950`.

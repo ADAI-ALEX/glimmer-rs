@@ -46,12 +46,7 @@ impl PretrainBatcher {
     pub fn open(path: &Path, seq_len: usize) -> Result<Self> {
         let file = TokenFile::open(path)?;
         if file.len() < seq_len + 2 {
-            bail!(
-                "{} has {} tokens, fewer than one window of {}",
-                path.display(),
-                file.len(),
-                seq_len + 1
-            );
+            bail!("{} has {} tokens, fewer than one window of {}", path.display(), file.len(), seq_len + 1);
         }
         Ok(Self { file, seq_len })
     }
@@ -132,11 +127,7 @@ impl SftBatcher {
         }
         let mut order: Vec<u32> = (0..examples.len() as u32).collect();
         rng.shuffle(&mut order);
-        Ok(Self {
-            examples,
-            seq_len,
-            cursor: SftCursor { order, pos: 0, epoch: 0 },
-        })
+        Ok(Self { examples, seq_len, cursor: SftCursor { order, pos: 0, epoch: 0 } })
     }
 
     pub fn len(&self) -> usize {

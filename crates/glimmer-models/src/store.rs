@@ -16,10 +16,7 @@ pub fn save_weights(model: &Transformer, path: &Path) -> Result<()> {
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent)?;
     }
-    model
-        .clone()
-        .save_file(path)
-        .map_err(|e| anyhow!("saving weights to {}: {e}", path.display()))
+    model.clone().save_file(path).map_err(|e| anyhow!("saving weights to {}: {e}", path.display()))
 }
 
 /// Build a model from `cfg` and load weights saved by [`save_weights`]. Shapes are validated:

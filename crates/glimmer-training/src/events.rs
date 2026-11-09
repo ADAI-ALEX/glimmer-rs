@@ -37,6 +37,8 @@ pub enum StopReason {
     EarlyStopped,
     Cancelled,
     Diverged,
+    /// Stopped at `stop_after_step` with a resumable checkpoint (successive halving rungs).
+    Paused,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -50,6 +52,8 @@ pub struct RunSummary {
     pub final_train_loss: Option<f64>,
     pub best_val_loss: Option<f64>,
     pub best_step: Option<usize>,
+    /// Validation loss at the most recent evaluation.
+    pub last_val_loss: Option<f64>,
     pub best_checkpoint: Option<PathBuf>,
     pub last_checkpoint: Option<PathBuf>,
     pub wall_secs: f64,

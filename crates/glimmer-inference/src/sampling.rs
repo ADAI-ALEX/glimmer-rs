@@ -37,13 +37,7 @@ impl Default for SamplingConfig {
 
 impl SamplingConfig {
     pub fn greedy() -> Self {
-        Self {
-            temperature: 0.0,
-            top_k: 0,
-            top_p: 1.0,
-            repetition_penalty: 1.0,
-            ..Default::default()
-        }
+        Self { temperature: 0.0, top_k: 0, top_p: 1.0, repetition_penalty: 1.0, ..Default::default() }
     }
 }
 
@@ -54,10 +48,10 @@ pub fn apply_repetition_penalty(logits: &mut [f32], recent: &[u32], penalty: f32
     }
     let mut seen = std::collections::HashSet::new();
     for &t in recent {
-        if seen.insert(t) {
-            if let Some(l) = logits.get_mut(t as usize) {
-                *l = if *l > 0.0 { *l / penalty } else { *l * penalty };
-            }
+        if seen.insert(t)
+            && let Some(l) = logits.get_mut(t as usize)
+        {
+            *l = if *l > 0.0 { *l / penalty } else { *l * penalty };
         }
     }
 }
@@ -85,10 +79,7 @@ pub fn sample(logits: &[f32], recent: &[u32], cfg: &SamplingConfig, rng: &mut Rn
         idx.truncate(cfg.top_k);
     }
     let max = logits[idx[0]];
-    let mut probs: Vec<f32> = idx
-        .iter()
-        .map(|&i| ((logits[i] - max) / cfg.temperature).exp())
-        .collect();
+    let mut probs: Vec<f32> = idx.iter().map(|&i| ((logits[i] - max) / cfg.temperature).exp()).collect();
     let total: f32 = probs.iter().sum();
     probs.iter_mut().for_each(|p| *p /= total);
     if cfg.top_p < 1.0 {
@@ -140,7 +131,8 @@ mod tests {
     #[test]
     fn banned_tokens_never_sampled() {
         let mut rng = Rng::new(1);
-        let cfg = SamplingConfig { temperature: 1.0, top_k: 0, top_p: 1.0, repetition_penalty: 1.0, ..Default::default() };
+        let cfg =
+            SamplingConfig { temperature: 1.0, top_k: 0, top_p: 1.0, repetition_penalty: 1.0, ..Default::default() };
         for _ in 0..200 {
             assert_ne!(sample(&[5.0, 0.0, 0.0], &[], &cfg, &mut rng, &[0]), 0);
         }
@@ -149,7 +141,8 @@ mod tests {
     #[test]
     fn top_k_restricts_support() {
         let mut rng = Rng::new(2);
-        let cfg = SamplingConfig { temperature: 1.0, top_k: 2, top_p: 1.0, repetition_penalty: 1.0, ..Default::default() };
+        let cfg =
+            SamplingConfig { temperature: 1.0, top_k: 2, top_p: 1.0, repetition_penalty: 1.0, ..Default::default() };
         let logits = [3.0, 2.9, 2.8, 2.7];
         for _ in 0..500 {
             assert!(sample(&logits, &[], &cfg, &mut rng, &[]) < 2);
@@ -159,7 +152,8 @@ mod tests {
     #[test]
     fn top_p_restricts_to_nucleus() {
         let mut rng = Rng::new(3);
-        let cfg = SamplingConfig { temperature: 1.0, top_k: 0, top_p: 0.5, repetition_penalty: 1.0, ..Default::default() };
+        let cfg =
+            SamplingConfig { temperature: 1.0, top_k: 0, top_p: 0.5, repetition_penalty: 1.0, ..Default::default() };
         // p ≈ [0.84, 0.11, 0.04, ...]: nucleus at 0.5 is just token 0.
         let logits = [4.0, 2.0, 1.0, 0.0];
         for _ in 0..200 {
@@ -172,7 +166,8 @@ mod tests {
         let logits = [1.0, 0.0];
         let count = |t: f32| {
             let mut rng = Rng::new(4);
-            let cfg = SamplingConfig { temperature: t, top_k: 0, top_p: 1.0, repetition_penalty: 1.0, ..Default::default() };
+            let cfg =
+                SamplingConfig { temperature: t, top_k: 0, top_p: 1.0, repetition_penalty: 1.0, ..Default::default() };
             (0..5000).filter(|_| sample(&logits, &[], &cfg, &mut rng, &[]) == 0).count()
         };
         let cold = count(0.3);

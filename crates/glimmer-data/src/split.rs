@@ -36,11 +36,7 @@ pub struct SplitSpec {
 
 impl Default for SplitSpec {
     fn default() -> Self {
-        Self {
-            val_fraction: 0.01,
-            test_fraction: 0.01,
-            seed: 7,
-        }
+        Self { val_fraction: 0.01, test_fraction: 0.01, seed: 7 }
     }
 }
 
@@ -65,11 +61,7 @@ mod tests {
 
     #[test]
     fn deterministic_and_proportional() {
-        let spec = SplitSpec {
-            val_fraction: 0.1,
-            test_fraction: 0.05,
-            seed: 1,
-        };
+        let spec = SplitSpec { val_fraction: 0.1, test_fraction: 0.05, seed: 1 };
         let mut counts = std::collections::HashMap::new();
         for i in 0..20_000 {
             let id = format!("doc-{i}");
@@ -87,9 +79,7 @@ mod tests {
     fn seed_changes_assignment() {
         let a = SplitSpec { seed: 1, ..Default::default() };
         let b = SplitSpec { seed: 2, ..Default::default() };
-        let differ = (0..2000)
-            .filter(|i| a.assign(&i.to_string()) != b.assign(&i.to_string()))
-            .count();
+        let differ = (0..2000).filter(|i| a.assign(&i.to_string()) != b.assign(&i.to_string())).count();
         assert!(differ > 0);
     }
 }

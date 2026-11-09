@@ -22,12 +22,7 @@ fn splitmix64(state: &mut u64) -> u64 {
 impl Rng {
     pub fn new(seed: u64) -> Self {
         let mut sm = seed;
-        let s = [
-            splitmix64(&mut sm),
-            splitmix64(&mut sm),
-            splitmix64(&mut sm),
-            splitmix64(&mut sm),
-        ];
+        let s = [splitmix64(&mut sm), splitmix64(&mut sm), splitmix64(&mut sm), splitmix64(&mut sm)];
         Self { s }
     }
 
@@ -90,11 +85,7 @@ impl Rng {
     }
 
     pub fn choose<'a, T>(&mut self, items: &'a [T]) -> Option<&'a T> {
-        if items.is_empty() {
-            None
-        } else {
-            Some(&items[self.below(items.len())])
-        }
+        if items.is_empty() { None } else { Some(&items[self.below(items.len())]) }
     }
 }
 

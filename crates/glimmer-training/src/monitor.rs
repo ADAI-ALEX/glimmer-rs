@@ -62,27 +62,29 @@ impl Monitor {
         self.clipped.push_back(m.clipped);
         let past_warmup = m.step > self.warmup + 20;
 
-        if let Some(slow) = slow_before {
-            if past_warmup && m.loss > slow * 1.5 && m.loss - slow > 0.5 {
-                self.last_spike = Some(m.step);
-                if let Some(a) = self.once(
-                    "loss_spike",
-                    m.step,
-                    200,
-                    format!(
-                        "Loss spike at step {}: {:.3} vs running average {:.3}. Isolated spikes are \
+        if let Some(slow) = slow_before
+            && past_warmup
+            && m.loss > slow * 1.5
+            && m.loss - slow > 0.5
+        {
+            self.last_spike = Some(m.step);
+            if let Some(a) = self.once(
+                "loss_spike",
+                m.step,
+                200,
+                format!(
+                    "Loss spike at step {}: {:.3} vs running average {:.3}. Isolated spikes are \
                          normal; if they recur, lower the peak learning rate (now {:.2e}) or lengthen warmup.",
-                        m.step, m.loss, slow, m.lr
-                    ),
-                ) {
-                    out.push(a);
-                }
+                    m.step, m.loss, slow, m.lr
+                ),
+            ) {
+                out.push(a);
             }
         }
         if self.clipped.len() == CLIP_WINDOW && past_warmup {
             let frac = self.clipped.iter().filter(|&&c| c).count() as f64 / CLIP_WINDOW as f64;
-            if frac > 0.6 {
-                if let Some(a) = self.once(
+            if frac > 0.6
+                && let Some(a) = self.once(
                     "frequent_clipping",
                     m.step,
                     1000,
@@ -92,20 +94,22 @@ impl Monitor {
                         frac * 100.0,
                         m.grad_norm
                     ),
-                ) {
-                    out.push(a);
-                }
+                )
+            {
+                out.push(a);
             }
         }
-        if m.grad_norm.is_finite() && m.grad_norm > 50.0 && past_warmup {
-            if let Some(a) = self.once(
+        if m.grad_norm.is_finite()
+            && m.grad_norm > 50.0
+            && past_warmup
+            && let Some(a) = self.once(
                 "large_gradients",
                 m.step,
                 500,
                 format!("Very large gradient norm ({:.1}) at step {}. Check for instability.", m.grad_norm, m.step),
-            ) {
-                out.push(a);
-            }
+            )
+        {
+            out.push(a);
         }
         out
     }
@@ -118,8 +122,10 @@ impl Monitor {
             let (s0, v0, t0) = self.vals[n - 3];
             let (_, v1, _) = self.vals[n - 2];
             let (s2, v2, t2) = self.vals[n - 1];
-            if v2 > v1 && v1 > v0 && t2 < t0 {
-                if let Some(a) = self.once(
+            if v2 > v1
+                && v1 > v0
+                && t2 < t0
+                && let Some(a) = self.once(
                     "overfitting",
                     e.step,
                     1,
@@ -128,27 +134,29 @@ impl Monitor {
                          training loss fell ({t0:.3} → {t2:.3}): the model is overfitting. The best checkpoint \
                          is kept; consider early stopping, more data, dropout or weight decay."
                     ),
-                ) {
-                    out.push(a);
-                }
+                )
+            {
+                out.push(a);
             }
             let gap = v2 - t2;
-            if gap > 0.5 && t2 < t0 {
-                if let Some(a) = self.once(
+            if gap > 0.5
+                && t2 < t0
+                && let Some(a) = self.once(
                     "generalisation_gap",
                     e.step,
                     2000,
                     format!("Validation loss exceeds training loss by {gap:.2}; generalisation is degrading."),
-                ) {
-                    out.push(a);
-                }
+                )
+            {
+                out.push(a);
             }
         }
         if n >= 4 {
             let recent: Vec<f64> = self.vals[n - 4..].iter().map(|v| v.1).collect();
             let improvement = recent[0] - recent[3];
-            if improvement.abs() < 0.005 && e.step > self.warmup {
-                if let Some(a) = self.once(
+            if improvement.abs() < 0.005
+                && e.step > self.warmup
+                && let Some(a) = self.once(
                     "plateau",
                     e.step,
                     3000,
@@ -157,9 +165,9 @@ impl Monitor {
                          Training longer at this learning rate is unlikely to help much.",
                         recent[3]
                     ),
-                ) {
-                    out.push(a);
-                }
+                )
+            {
+                out.push(a);
             }
         }
         out

@@ -38,22 +38,13 @@ pub struct Message {
 
 impl Message {
     pub fn user(s: impl Into<String>) -> Self {
-        Self {
-            role: Role::User,
-            content: s.into(),
-        }
+        Self { role: Role::User, content: s.into() }
     }
     pub fn assistant(s: impl Into<String>) -> Self {
-        Self {
-            role: Role::Assistant,
-            content: s.into(),
-        }
+        Self { role: Role::Assistant, content: s.into() }
     }
     pub fn system(s: impl Into<String>) -> Self {
-        Self {
-            role: Role::System,
-            content: s.into(),
-        }
+        Self { role: Role::System, content: s.into() }
     }
 }
 
@@ -96,11 +87,7 @@ mod tests {
     #[test]
     fn mask_covers_assistant_content_and_end_only() {
         let tok = Tokenizer::bytes_only();
-        let msgs = vec![
-            Message::system("S"),
-            Message::user("hi"),
-            Message::assistant("yo"),
-        ];
+        let msgs = vec![Message::system("S"), Message::user("hi"), Message::assistant("yo")];
         let (ids, mask) = render_with_mask(&tok, &msgs);
         // <sys> S <end> <user> h i <end> <asst> y o <end>
         assert_eq!(ids.len(), 11);
@@ -115,19 +102,9 @@ mod tests {
     #[test]
     fn multi_turn_masks_every_assistant_turn() {
         let tok = Tokenizer::bytes_only();
-        let msgs = vec![
-            Message::user("a"),
-            Message::assistant("b"),
-            Message::user("c"),
-            Message::assistant("d"),
-        ];
+        let msgs = vec![Message::user("a"), Message::assistant("b"), Message::user("c"), Message::assistant("d")];
         let (ids, mask) = render_with_mask(&tok, &msgs);
-        let supervised: Vec<u32> = ids
-            .iter()
-            .zip(&mask)
-            .filter(|(_, m)| **m == 1)
-            .map(|(i, _)| *i)
-            .collect();
+        let supervised: Vec<u32> = ids.iter().zip(&mask).filter(|(_, m)| **m == 1).map(|(i, _)| *i).collect();
         assert_eq!(tok.decode(&supervised), "bd");
         assert_eq!(supervised.iter().filter(|&&i| i == END).count(), 2);
     }

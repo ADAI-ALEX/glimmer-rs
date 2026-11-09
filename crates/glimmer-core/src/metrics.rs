@@ -83,13 +83,8 @@ pub struct MetricsWriter {
 
 impl MetricsWriter {
     pub fn append(path: impl AsRef<Path>) -> Result<Self> {
-        let file = std::fs::OpenOptions::new()
-            .create(true)
-            .append(true)
-            .open(path)?;
-        Ok(Self {
-            file: std::io::BufWriter::new(file),
-        })
+        let file = std::fs::OpenOptions::new().create(true).append(true).open(path)?;
+        Ok(Self { file: std::io::BufWriter::new(file) })
     }
 
     pub fn write(&mut self, record: &MetricRecord) -> Result<()> {
@@ -167,12 +162,7 @@ mod tests {
         .unwrap();
         drop(w);
         // Simulate a torn final line.
-        std::fs::OpenOptions::new()
-            .append(true)
-            .open(&path)
-            .unwrap()
-            .write_all(b"{\"type\":\"step\",\"st")
-            .unwrap();
+        std::fs::OpenOptions::new().append(true).open(&path).unwrap().write_all(b"{\"type\":\"step\",\"st").unwrap();
         let recs = read_metrics(&path).unwrap();
         assert_eq!(recs.len(), 2);
         assert_eq!(recs[0], rec);

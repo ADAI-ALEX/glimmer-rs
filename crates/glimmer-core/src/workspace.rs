@@ -57,20 +57,13 @@ impl Workspace {
     /// Resolve a possibly-relative path against the workspace root.
     pub fn resolve(&self, p: impl AsRef<Path>) -> PathBuf {
         let p = p.as_ref();
-        if p.is_absolute() {
-            p.to_path_buf()
-        } else {
-            self.root.join(p)
-        }
+        if p.is_absolute() { p.to_path_buf() } else { self.root.join(p) }
     }
 
     /// Express a path relative to the root when possible (for display and portable manifests).
     pub fn relative(&self, p: impl AsRef<Path>) -> String {
         let p = p.as_ref();
-        p.strip_prefix(&self.root)
-            .unwrap_or(p)
-            .to_string_lossy()
-            .into_owned()
+        p.strip_prefix(&self.root).unwrap_or(p).to_string_lossy().into_owned()
     }
 
     pub fn data_dir(&self) -> PathBuf {

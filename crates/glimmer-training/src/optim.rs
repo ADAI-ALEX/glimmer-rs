@@ -20,34 +20,19 @@ pub fn build(cfg: &OptimizerConfig) -> ModuleOptimizer {
     match cfg.kind {
         OptimizerKind::AdamW => {
             let make = |wd: f32| {
-                AdamWConfig::new()
-                    .with_beta_1(b1)
-                    .with_beta_2(b2)
-                    .with_epsilon(eps)
-                    .with_weight_decay(wd)
-                    .build()
+                AdamWConfig::new().with_beta_1(b1).with_beta_2(b2).with_epsilon(eps).with_weight_decay(wd).build()
             };
             ModuleOptimizer::from(make(wd)).with_group(no_decay_group(), make(0.0), None)
         }
         OptimizerKind::Lion => {
-            let make = |wd: f32| {
-                LionConfig::new()
-                    .with_beta_1(b1)
-                    .with_beta_2(b2)
-                    .with_weight_decay(wd)
-                    .build()
-            };
+            let make = |wd: f32| LionConfig::new().with_beta_1(b1).with_beta_2(b2).with_weight_decay(wd).build();
             ModuleOptimizer::from(make(wd)).with_group(no_decay_group(), make(0.0), None)
         }
         OptimizerKind::Sgd => {
             let make = |wd: f32| {
                 SgdConfig::new()
                     .with_weight_decay((wd > 0.0).then(|| WeightDecayConfig::new(wd)))
-                    .with_momentum(Some(MomentumConfig {
-                        momentum: cfg.momentum,
-                        dampening: 0.0,
-                        nesterov: false,
-                    }))
+                    .with_momentum(Some(MomentumConfig { momentum: cfg.momentum, dampening: 0.0, nesterov: false }))
                     .build()
             };
             ModuleOptimizer::from(make(wd)).with_group(no_decay_group(), make(0.0), None)
@@ -89,19 +74,14 @@ impl ModuleVisitor for Scale<'_> {
 pub fn grad_norm<M: Module>(model: &M, grads: &GradientsParams) -> f64 {
     let mut v = SquaredNorm { grads, acc: None };
     model.visit(&mut v);
-    v.acc
-        .map(|t| (t.into_scalar::<f32>() as f64).sqrt())
-        .unwrap_or(0.0)
+    v.acc.map(|t| (t.into_scalar::<f32>() as f64).sqrt()).unwrap_or(0.0)
 }
 
 /// Clip gradients to a maximum global norm. Returns `(norm_before, clipped)`.
 pub fn clip_global_norm<M: Module>(model: &M, grads: &mut GradientsParams, max_norm: f64) -> (f64, bool) {
     let norm = grad_norm(model, grads);
     if max_norm > 0.0 && norm.is_finite() && norm > max_norm {
-        let mut s = Scale {
-            grads,
-            factor: max_norm / (norm + 1e-6),
-        };
+        let mut s = Scale { grads, factor: max_norm / (norm + 1e-6) };
         model.visit(&mut s);
         (norm, true)
     } else {

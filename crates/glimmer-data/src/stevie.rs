@@ -62,14 +62,7 @@ pub fn parse(text: &str, file: &str, report: &mut LoadReport) {
             if id.is_empty() {
                 report.errors.push(format!("{file}:{lineno}: missing conversation id"));
             }
-            current = Some((
-                Conversation {
-                    id,
-                    topic,
-                    messages: Vec::new(),
-                },
-                lineno,
-            ));
+            current = Some((Conversation { id, topic, messages: Vec::new() }, lineno));
             continue;
         }
         let (role, content) = if let Some(c) = line.strip_prefix("U:") {
@@ -77,9 +70,7 @@ pub fn parse(text: &str, file: &str, report: &mut LoadReport) {
         } else if let Some(c) = line.strip_prefix("S:") {
             (Role::Assistant, c.trim())
         } else {
-            report
-                .errors
-                .push(format!("{file}:{lineno}: expected 'U:', 'S:' or '###', got: {line}"));
+            report.errors.push(format!("{file}:{lineno}: expected 'U:', 'S:' or '###', got: {line}"));
             continue;
         };
         let Some((conv, _)) = current.as_mut() else {
@@ -90,32 +81,24 @@ pub fn parse(text: &str, file: &str, report: &mut LoadReport) {
             report.errors.push(format!("{file}:{lineno}: empty message"));
             continue;
         }
-        let expected = if conv.messages.len() % 2 == 0 {
-            Role::User
-        } else {
-            Role::Assistant
-        };
+        let expected = if conv.messages.len() % 2 == 0 { Role::User } else { Role::Assistant };
         if role != expected {
-            report.errors.push(format!(
-                "{file}:{lineno}: turns must alternate U/S starting with U (conversation {})",
-                conv.id
-            ));
+            report
+                .errors
+                .push(format!("{file}:{lineno}: turns must alternate U/S starting with U (conversation {})", conv.id));
             continue;
         }
         if role == Role::Assistant {
             let lower = content.to_lowercase();
             for f in FORBIDDEN {
                 if lower.contains(f) {
-                    report.warnings.push(format!(
-                        "{file}:{lineno}: STEVIE uses '{f}' — avoid impersonating a real person"
-                    ));
+                    report
+                        .warnings
+                        .push(format!("{file}:{lineno}: STEVIE uses '{f}' — avoid impersonating a real person"));
                 }
             }
         }
-        conv.messages.push(Message {
-            role,
-            content: content.to_string(),
-        });
+        conv.messages.push(Message { role, content: content.to_string() });
     }
     finish(current.take(), report);
 }
@@ -147,11 +130,7 @@ pub fn load_dir(dir: &Path) -> Result<LoadReport> {
 
 /// Text used for duplicate detection: all message contents.
 pub fn conversation_text(c: &Conversation) -> String {
-    c.messages
-        .iter()
-        .map(|m| m.content.as_str())
-        .collect::<Vec<_>>()
-        .join(" \n ")
+    c.messages.iter().map(|m| m.content.as_str()).collect::<Vec<_>>().join(" \n ")
 }
 
 pub struct FilterResult {
@@ -184,22 +163,14 @@ pub fn quality_filter(convs: Vec<Conversation>, spec: &SourceSpec, log: &mut dyn
         let texts: Vec<String> = convs.iter().map(conversation_text).collect();
         let r = dedup::near_dedup(&texts, spec.cleaning.near_dedup_threshold, &MinHashConfig::default());
         for (d, k, s) in &r.dropped {
-            log(&format!(
-                "  near-duplicate ({s:.2}): {} ≈ {} — dropped {}",
-                convs[*d].id, convs[*k].id, convs[*d].id
-            ));
+            log(&format!("  near-duplicate ({s:.2}): {} ≈ {} — dropped {}", convs[*d].id, convs[*k].id, convs[*d].id));
         }
         near = r.dropped.len();
         r.keep.into_iter().map(|i| convs[i].clone()).collect()
     } else {
         convs
     };
-    FilterResult {
-        kept: convs,
-        rejected,
-        exact_duplicates: exact,
-        near_duplicates: near,
-    }
+    FilterResult { kept: convs, rejected, exact_duplicates: exact, near_duplicates: near }
 }
 
 /// A fixed held-out evaluation prompt. Never used for training.
@@ -220,8 +191,7 @@ struct EvalFile {
 }
 
 pub fn load_eval_prompts(path: &Path) -> Result<Vec<EvalPrompt>> {
-    let text = std::fs::read_to_string(path)
-        .with_context(|| format!("reading eval prompts {}", path.display()))?;
+    let text = std::fs::read_to_string(path).with_context(|| format!("reading eval prompts {}", path.display()))?;
     let f: EvalFile = toml::from_str(&text)?;
     for p in &f.prompt {
         anyhow::ensure!(
@@ -252,11 +222,7 @@ pub fn leakage(train: &[Conversation], prompts: &[EvalPrompt], threshold: f64) -
             let canon = dedup::canonical(&m.content);
             let sig = dedup::signature(&m.content, &cfg);
             for (pid, psig, pcanon) in &prompt_sigs {
-                let sim = if &canon == pcanon {
-                    1.0
-                } else {
-                    dedup::estimated_jaccard(&sig, psig)
-                };
+                let sim = if &canon == pcanon { 1.0 } else { dedup::estimated_jaccard(&sig, psig) };
                 if sim >= threshold {
                     hits.push((c.id.clone(), pid.clone(), sim));
                 }

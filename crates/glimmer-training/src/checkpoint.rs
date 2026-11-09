@@ -16,13 +16,13 @@
 //! save never leaves a half-written checkpoint that looks valid.
 
 use anyhow::{Context, Result};
+use glimmer_core::Rng;
 use glimmer_core::config::{ModelConfig, Stage, TrainingConfig};
 use glimmer_core::metrics::Ema;
-use glimmer_core::Rng;
 use glimmer_data::batch::SftCursor;
+use glimmer_models::Transformer;
 use glimmer_models::burn::optim::ModuleOptimizer;
 use glimmer_models::store;
-use glimmer_models::Transformer;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 
@@ -78,19 +78,13 @@ pub struct CheckpointData<'a> {
 pub fn save(dir: &Path, data: CheckpointData) -> Result<()> {
     let parent = dir.parent().context("checkpoint path has no parent")?;
     std::fs::create_dir_all(parent)?;
-    let tmp = parent.join(format!(
-        ".tmp-{}-{}",
-        dir.file_name().unwrap().to_string_lossy(),
-        std::process::id()
-    ));
+    let tmp = parent.join(format!(".tmp-{}-{}", dir.file_name().unwrap().to_string_lossy(), std::process::id()));
     if tmp.exists() {
         std::fs::remove_dir_all(&tmp)?;
     }
     std::fs::create_dir_all(&tmp)?;
     store::save_weights(data.model, &tmp.join("model.bpk"))?;
-    data.optimizer
-        .save(tmp.join("optimizer.bpk"))
-        .map_err(|e| anyhow::anyhow!("saving optimizer state: {e}"))?;
+    data.optimizer.save(tmp.join("optimizer.bpk")).map_err(|e| anyhow::anyhow!("saving optimizer state: {e}"))?;
     std::fs::write(tmp.join("state.json"), serde_json::to_string_pretty(data.state)?)?;
     std::fs::write(tmp.join("meta.json"), serde_json::to_string_pretty(data.meta)?)?;
     std::fs::write(tmp.join("model.json"), serde_json::to_string_pretty(data.model_config)?)?;
@@ -126,10 +120,7 @@ pub fn periodic_checkpoints(run_dir: &Path) -> Vec<PathBuf> {
         .map(|rd| {
             rd.flatten()
                 .map(|e| e.path())
-                .filter(|p| {
-                    p.file_name()
-                        .is_some_and(|n| n.to_string_lossy().starts_with("step-"))
-                })
+                .filter(|p| p.file_name().is_some_and(|n| n.to_string_lossy().starts_with("step-")))
                 .collect()
         })
         .unwrap_or_default();

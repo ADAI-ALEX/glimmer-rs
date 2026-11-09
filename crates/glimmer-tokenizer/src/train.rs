@@ -28,12 +28,7 @@ pub struct TrainerConfig {
 
 impl Default for TrainerConfig {
     fn default() -> Self {
-        Self {
-            vocab_size: 8192,
-            min_frequency: 2,
-            max_pretoken_bytes: 64,
-            trained_on: Vec::new(),
-        }
+        Self { vocab_size: 8192, min_frequency: 2, max_pretoken_bytes: 64, trained_on: Vec::new() }
     }
 }
 
@@ -117,10 +112,7 @@ pub fn train_from_counts(
             where_.entry(p).or_default().push(idx as u32);
         }
     }
-    let mut heap: BinaryHeap<(i64, Reverse<(u32, u32)>)> = pair_counts
-        .iter()
-        .map(|(&p, &c)| (c, Reverse(p)))
-        .collect();
+    let mut heap: BinaryHeap<(i64, Reverse<(u32, u32)>)> = pair_counts.iter().map(|(&p, &c)| (c, Reverse(p))).collect();
 
     let mut merges: Vec<(u32, u32)> = Vec::with_capacity(target_merges);
     let mut local_before: HashMap<(u32, u32), i64> = HashMap::new();
@@ -192,7 +184,7 @@ pub fn train_from_counts(
             words[idx_u] = merged;
         }
         pair_counts.remove(&pair);
-        if merges.len() % 256 == 0 {
+        if merges.len().is_multiple_of(256) {
             progress(merges.len(), target_merges);
         }
     }
@@ -220,11 +212,7 @@ mod tests {
         let text = "ab ab ab ab ab ab cd";
         let t = train(
             [text].into_iter(),
-            &TrainerConfig {
-                vocab_size: FIRST_MERGE as usize + 1,
-                min_frequency: 1,
-                ..Default::default()
-            },
+            &TrainerConfig { vocab_size: FIRST_MERGE as usize + 1, min_frequency: 1, ..Default::default() },
         )
         .unwrap();
         // " a"+"b" (with leading space) or "a"+"b": both chunks "ab" and " ab" contain (a, b).
@@ -236,10 +224,7 @@ mod tests {
     #[test]
     fn deterministic_training() {
         let text = "the cat sat on the mat with the hat ".repeat(50);
-        let cfg = TrainerConfig {
-            vocab_size: FIRST_MERGE as usize + 40,
-            ..Default::default()
-        };
+        let cfg = TrainerConfig { vocab_size: FIRST_MERGE as usize + 40, ..Default::default() };
         let a = train([text.as_str()].into_iter(), &cfg).unwrap();
         let b = train([text.as_str()].into_iter(), &cfg).unwrap();
         assert_eq!(a.merges, b.merges);
@@ -250,21 +235,15 @@ mod tests {
         // Compare the incremental trainer with a naive recount-every-step implementation.
         let text = "low lower lowest newer wider new news ".repeat(7);
         let n = 25;
-        let cfg = TrainerConfig {
-            vocab_size: FIRST_MERGE as usize + n,
-            min_frequency: 1,
-            ..Default::default()
-        };
+        let cfg = TrainerConfig { vocab_size: FIRST_MERGE as usize + n, min_frequency: 1, ..Default::default() };
         let fast = train([text.as_str()].into_iter(), &cfg).unwrap();
 
         let mut counts: HashMap<String, i64> = HashMap::new();
         for c in pretokenize(&text) {
             *counts.entry(c.to_string()).or_insert(0) += 1;
         }
-        let mut words: Vec<(Vec<u32>, i64)> = counts
-            .into_iter()
-            .map(|(w, c)| (w.bytes().map(|b| BYTE_OFFSET + b as u32).collect(), c))
-            .collect();
+        let mut words: Vec<(Vec<u32>, i64)> =
+            counts.into_iter().map(|(w, c)| (w.bytes().map(|b| BYTE_OFFSET + b as u32).collect(), c)).collect();
         let mut slow = Vec::new();
         for k in 0..n {
             let mut pc: HashMap<(u32, u32), i64> = HashMap::new();
@@ -273,10 +252,7 @@ mod tests {
                     *pc.entry(p).or_insert(0) += c;
                 }
             }
-            let Some((&best, _)) = pc
-                .iter()
-                .max_by(|a, b| a.1.cmp(b.1).then_with(|| b.0.cmp(a.0)))
-            else {
+            let Some((&best, _)) = pc.iter().max_by(|a, b| a.1.cmp(b.1).then_with(|| b.0.cmp(a.0))) else {
                 break;
             };
             let id = FIRST_MERGE + k as u32;

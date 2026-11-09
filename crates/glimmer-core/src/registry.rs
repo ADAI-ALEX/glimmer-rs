@@ -70,14 +70,9 @@ impl RegisteredModel {
             &std::fs::read_to_string(dir.join("model.json"))
                 .with_context(|| format!("{} is not a GLIMMER model directory", dir.display()))?,
         )?;
-        let card = std::fs::read_to_string(dir.join("card.json"))
-            .ok()
-            .and_then(|t| serde_json::from_str(&t).ok());
+        let card = std::fs::read_to_string(dir.join("card.json")).ok().and_then(|t| serde_json::from_str(&t).ok());
         Ok(Self {
-            name: dir
-                .file_name()
-                .map(|n| n.to_string_lossy().into_owned())
-                .unwrap_or_default(),
+            name: dir.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default(),
             dir: dir.to_path_buf(),
             config,
             card,
@@ -112,17 +107,9 @@ pub fn resolve_model(models_dir: &Path, root: &Path, reference: &str) -> Result<
     if by_name.join("model.json").is_file() {
         return RegisteredModel::open(&by_name);
     }
-    let path = if Path::new(reference).is_absolute() {
-        PathBuf::from(reference)
-    } else {
-        root.join(reference)
-    };
+    let path = if Path::new(reference).is_absolute() { PathBuf::from(reference) } else { root.join(reference) };
     if path.join("model.json").is_file() {
         return RegisteredModel::open(&path);
     }
-    anyhow::bail!(
-        "model '{reference}' not found (looked in {} and {})",
-        by_name.display(),
-        path.display()
-    )
+    anyhow::bail!("model '{reference}' not found (looked in {} and {})", by_name.display(), path.display())
 }

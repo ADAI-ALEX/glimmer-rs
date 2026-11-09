@@ -62,43 +62,24 @@ fn detect_apple_gpu(with_metal_query: bool) -> Option<GpuInfo> {
     let cores = ioreg_value(&text, "gpu-core-count").and_then(|v| v.parse().ok());
     let metal_support = if with_metal_query {
         run("system_profiler", &["SPDisplaysDataType"]).and_then(|t| {
-            t.lines()
-                .find_map(|l| l.trim().strip_prefix("Metal Support:").map(|v| v.trim().to_string()))
-                .or_else(|| {
-                    t.lines().find_map(|l| {
-                        l.trim()
-                            .strip_prefix("Metal Family:")
-                            .map(|v| v.trim().to_string())
-                    })
-                })
+            t.lines().find_map(|l| l.trim().strip_prefix("Metal Support:").map(|v| v.trim().to_string())).or_else(
+                || t.lines().find_map(|l| l.trim().strip_prefix("Metal Family:").map(|v| v.trim().to_string())),
+            )
         })
     } else {
         None
     };
-    Some(GpuInfo {
-        unified_memory: name.starts_with("Apple"),
-        name,
-        cores,
-        metal_support,
-    })
+    Some(GpuInfo { unified_memory: name.starts_with("Apple"), name, cores, metal_support })
 }
 
 impl HardwareReport {
     /// Inspect the machine. `thorough` additionally queries `system_profiler` for the Metal
     /// feature set, which takes around a second on macOS.
     pub fn detect(thorough: bool) -> Self {
-        let mem = System::new_with_specifics(
-            RefreshKind::nothing().with_memory(MemoryRefreshKind::everything()),
-        )
-        .ok();
-        let (total, available) = mem
-            .as_ref()
-            .map(|s| (s.total_memory(), s.available_memory()))
-            .unwrap_or((0, 0));
+        let mem = System::new_with_specifics(RefreshKind::nothing().with_memory(MemoryRefreshKind::everything())).ok();
+        let (total, available) = mem.as_ref().map(|s| (s.total_memory(), s.available_memory())).unwrap_or((0, 0));
 
-        let logical = std::thread::available_parallelism()
-            .map(|n| n.get())
-            .unwrap_or(1);
+        let logical = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(1);
         let macos = cfg!(target_os = "macos");
 
         let (os_version, cpu_brand, perf, eff, gpu) = if macos {
@@ -170,10 +151,7 @@ impl HardwareReport {
                      millions of tokens in a few hours, leaving memory for the OS and the TUI."
                 ),
             ),
-            (true, g) => (
-                "micro",
-                format!("Only {g:.0} GiB memory: `micro` keeps training within memory limits."),
-            ),
+            (true, g) => ("micro", format!("Only {g:.0} GiB memory: `micro` keeps training within memory limits.")),
             (false, g) => (
                 "micro",
                 format!(
@@ -218,10 +196,7 @@ impl Default for ProcessMemory {
 
 /// System memory snapshot: (used, total) bytes.
 pub fn system_memory() -> Option<(u64, u64)> {
-    let s = System::new_with_specifics(
-        RefreshKind::nothing().with_memory(MemoryRefreshKind::everything()),
-    )
-    .ok()?;
+    let s = System::new_with_specifics(RefreshKind::nothing().with_memory(MemoryRefreshKind::everything())).ok()?;
     Some((s.used_memory(), s.total_memory()))
 }
 
