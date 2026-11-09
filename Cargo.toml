@@ -1,0 +1,79 @@
+[workspace]
+resolver = "3"
+members = [
+    "crates/glimmer-core",
+    "crates/glimmer-tokenizer",
+    "crates/glimmer-data",
+    "crates/glimmer-models",
+    "crates/glimmer-training",
+    "crates/glimmer-optimisation",
+    "crates/glimmer-inference",
+    "crates/glimmer-evaluation",
+    "crates/glimmer-bench",
+    "crates/glimmer-terminal",
+    "apps/glimmer-cli",
+]
+default-members = ["apps/glimmer-cli"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.90"
+license = "Apache-2.0"
+repository = "https://github.com/ADAI-ALEX/glimmer-rs"
+authors = ["GLIMMER contributors"]
+
+[workspace.dependencies]
+glimmer-core = { path = "crates/glimmer-core" }
+glimmer-tokenizer = { path = "crates/glimmer-tokenizer" }
+glimmer-data = { path = "crates/glimmer-data" }
+glimmer-models = { path = "crates/glimmer-models" }
+glimmer-training = { path = "crates/glimmer-training" }
+glimmer-optimisation = { path = "crates/glimmer-optimisation" }
+glimmer-inference = { path = "crates/glimmer-inference" }
+glimmer-evaluation = { path = "crates/glimmer-evaluation" }
+glimmer-bench = { path = "crates/glimmer-bench" }
+glimmer-terminal = { path = "crates/glimmer-terminal" }
+
+# Burn: Metal (wgpu + native MSL) for acceleration, Flex as the pure-Rust CPU fallback.
+# The CubeCL `cpu` backend is deliberately excluded: it JIT-compiles through a downloaded LLVM
+# toolchain with native library requirements, which hurts portability and CI.
+burn = { version = "0.22.1", default-features = false, features = [
+    "std",
+    "metal",
+    "flex",
+    "rayon",
+    "simd",
+    "autodiff",
+    "fusion",
+    "autotune",
+    "optim",
+] }
+
+anyhow = "1.0.104"
+thiserror = "2.0.21"
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.154"
+toml = "1.2.1"
+clap = { version = "4.6.7", features = ["derive", "wrap_help"] }
+ratatui = "0.30.2"
+crossterm = "0.29.0"
+memmap2 = "0.9.12"
+ureq = "3.5.1"
+parquet = { version = "60.1.0", default-features = false, features = ["snap", "zstd"] }
+unicode-normalization = "0.1.26"
+sha2 = "0.11.1"
+tracing = "0.1.44"
+tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
+sysinfo = { version = "0.40.1", default-features = false, features = ["system"] }
+unicode-width = "0.2.3"
+
+[profile.release]
+debug = "line-tables-only"
+
+# Tests exercise real training loops; optimise dependencies so they finish quickly.
+[profile.dev.package."*"]
+opt-level = 3
+
+[profile.dev]
+opt-level = 1

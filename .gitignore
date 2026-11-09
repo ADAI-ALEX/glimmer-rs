@@ -1,0 +1,26 @@
+# Build output
+/target/
+
+# Downloaded and generated data (reproducible with `glimmer data pipeline`)
+/data/
+
+# Training runs, checkpoints and benchmark output
+/runs/
+
+# Exported model weights (large binary files). Model cards are documented in docs/.
+/models/*
+!/models/README.md
+
+# Hyperparameter-search working directories (curated results live in docs/results/)
+/experiments/*
+!/experiments/README.md
+
+# Saved chat sessions
+/conversations/
+
+# OS / editor noise
+.DS_Store
+*.swp
+*.part
+.idea/
+.vscode/
