@@ -459,7 +459,7 @@ pub fn train(
         MetricRecord::Event(EventRecord { step, kind, message, unix: glimmer_core::time::now_unix() })
     };
 
-    emit(TrainEvent::Started(Box::new(RunInfo {
+    let run_info = RunInfo {
         run_id: run_id.clone(),
         run_dir: run_dir.clone(),
         stage: cfg.run.stage,
@@ -476,7 +476,10 @@ pub fn train(
         resumed_from: opts.resume.as_ref().map(|d| ws.relative(d)),
         initialised_from: ctx.initialised_from.clone(),
         config: cfg.clone(),
-    })));
+    };
+    // Written so other processes (e.g. the terminal UI's watch mode) can follow this run.
+    std::fs::write(run_dir.join("run_info.json"), serde_json::to_string_pretty(&run_info)?)?;
+    emit(TrainEvent::Started(Box::new(run_info)));
     let origin = match (&opts.resume, &init_dir) {
         (Some(d), _) => format!("resumed from {} at step {}", ws.relative(d), state.step),
         (None, Some(d)) => format!("initialised from {}", ws.relative(d)),

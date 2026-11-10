@@ -97,6 +97,15 @@ pub struct TrainView {
     pub summary: Option<RunSummary>,
     pub error: Option<String>,
     pub show_config: bool,
+    /// Following a run started by another process (read-only).
+    pub watch: Option<Watch>,
+}
+
+/// Incrementally tails `metrics.jsonl` of a run in another process.
+pub struct Watch {
+    pub dir: PathBuf,
+    offset: u64,
+    last_poll: Instant,
 }
 
 pub struct RunEntry {
@@ -201,6 +210,9 @@ impl App {
             ws,
         };
         app.refresh();
+        if app.screen == Screen::Train {
+            app.watch_active();
+        }
         let target = model
             .or_else(|| app.ws.settings.default_model.clone())
             .filter(|m| app.models.iter().any(|r| &r.name == m))
@@ -381,6 +393,7 @@ impl App {
             self.toast("training finished");
             self.refresh();
         }
+        self.poll_watch();
         // Chat events.
         while let Ok(evt) = self.chat.worker.rx.try_recv() {
             match evt {
@@ -453,6 +466,75 @@ impl App {
         }
         if self.toast.as_ref().is_some_and(|(_, t)| t.elapsed().as_secs() > 4) {
             self.toast = None;
+        }
+    }
+
+    /// Follow the most recent active run started elsewhere (e.g. `glimmer train` in a shell).
+    pub fn watch_active(&mut self) -> bool {
+        if self.train.job.is_some() {
+            return false;
+        }
+        let Some(dir) = active_run(&self.runs) else { return false };
+        let Some(info) = reconstruct_info(&dir) else { return false };
+        self.train = TrainView {
+            configs: std::mem::take(&mut self.train.configs),
+            selected: self.train.selected,
+            ..Default::default()
+        };
+        self.train.log.push_back((
+            EventKind::Info,
+            format!("watching {} (started in another process; controls disabled)", info.run_id),
+        ));
+        self.train.info = Some(info);
+        self.train.watch =
+            Some(Watch { dir, offset: 0, last_poll: Instant::now() - std::time::Duration::from_secs(5) });
+        self.poll_watch();
+        true
+    }
+
+    fn poll_watch(&mut self) {
+        use std::io::{Read, Seek, SeekFrom};
+        let Some(w) = self.train.watch.as_mut() else { return };
+        if w.last_poll.elapsed().as_millis() < 500 {
+            return;
+        }
+        w.last_poll = Instant::now();
+        let path = w.dir.join("metrics.jsonl");
+        let Ok(mut f) = std::fs::File::open(&path) else { return };
+        if f.seek(SeekFrom::Start(w.offset)).is_err() {
+            return;
+        }
+        let mut buf = String::new();
+        if f.read_to_string(&mut buf).is_err() {
+            return;
+        }
+        // Only consume complete lines; a partially written last line is read next time.
+        let complete = buf.rfind('\n').map(|i| i + 1).unwrap_or(0);
+        w.offset += complete as u64;
+        let finished = w.dir.join("summary.json").exists();
+        for line in buf[..complete].lines() {
+            match serde_json::from_str::<MetricRecord>(line) {
+                Ok(MetricRecord::Step(s)) => self.train.steps.push(s),
+                Ok(MetricRecord::Eval(e)) => self.train.evals.push(e),
+                Ok(MetricRecord::Sample(s)) => {
+                    self.train.samples.push(s);
+                    if self.train.samples.len() > 12 {
+                        self.train.samples.remove(0);
+                    }
+                }
+                Ok(MetricRecord::Event(e)) => {
+                    self.train.log.push_back((e.kind, format!("step {} · {}", e.step, e.message)));
+                    if self.train.log.len() > 200 {
+                        self.train.log.pop_front();
+                    }
+                }
+                Err(_) => {}
+            }
+        }
+        if finished && self.train.summary.is_none() {
+            let dir = self.train.watch.as_ref().map(|w| w.dir.clone()).unwrap();
+            self.train.summary =
+                std::fs::read_to_string(dir.join("summary.json")).ok().and_then(|t| serde_json::from_str(&t).ok());
         }
     }
 
@@ -597,6 +679,11 @@ impl App {
                 }
             }
             KeyCode::Char('c') => self.train.show_config = !self.train.show_config,
+            KeyCode::Char('w') => {
+                if !self.watch_active() {
+                    self.toast("no active run to watch (runs/ with metrics written in the last 2 minutes)");
+                }
+            }
             _ => {}
         }
     }
@@ -796,6 +883,56 @@ impl App {
             None => self.system("expected a number"),
         }
     }
+}
+
+/// A run is active if its metrics were written in the last two minutes and it has no summary.
+pub fn active_run(runs: &[RunEntry]) -> Option<PathBuf> {
+    runs.iter()
+        .filter(|r| !r.dir.join("summary.json").exists())
+        .filter_map(|r| {
+            let m = std::fs::metadata(r.dir.join("metrics.jsonl")).ok()?.modified().ok()?;
+            (m.elapsed().ok()?.as_secs() < 120).then(|| (m, r.dir.clone()))
+        })
+        .max_by_key(|(m, _)| *m)
+        .map(|(_, d)| d)
+}
+
+fn reconstruct_info(dir: &std::path::Path) -> Option<RunInfo> {
+    if let Some(i) = std::fs::read_to_string(dir.join("run_info.json")).ok().and_then(|t| serde_json::from_str(&t).ok())
+    {
+        return Some(i);
+    }
+    // Runs started before run_info.json existed: rebuild from the saved configs.
+    let config = TrainingConfig::load(dir.join("training.toml")).ok()?;
+    let model: glimmer_core::ModelConfig =
+        serde_json::from_str(&std::fs::read_to_string(dir.join("model.json")).ok()?).ok()?;
+    let first_info = read_metrics(dir.join("metrics.jsonl")).ok()?.into_iter().find_map(|r| match r {
+        MetricRecord::Event(e) if e.kind == EventKind::Info => Some(e.message),
+        _ => None,
+    });
+    let backend_label = first_info
+        .as_deref()
+        .map(|m| m.split(" · ").skip(1).take(2).collect::<Vec<_>>().join(" · "))
+        .unwrap_or_else(|| "unknown".into());
+    let backend = if backend_label.starts_with("Metal") { BackendKind::Metal } else { BackendKind::Cpu };
+    Some(RunInfo {
+        run_id: dir.file_name()?.to_string_lossy().into_owned(),
+        run_dir: dir.to_path_buf(),
+        stage: config.run.stage,
+        parameters: model.param_count(),
+        backend,
+        backend_label,
+        fallback_reason: None,
+        dataset: config.data.dataset.clone(),
+        train_tokens: 0,
+        start_step: 0,
+        max_steps: config.schedule.max_steps,
+        tokens_per_step: config.tokens_per_step(model.context_length),
+        resumed_from: None,
+        initialised_from: config.init.from_checkpoint.clone(),
+        model,
+        config,
+    })
 }
 
 pub fn list_nav(key: KeyEvent, sel: &mut usize, len: usize) {

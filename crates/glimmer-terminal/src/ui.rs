@@ -101,7 +101,12 @@ fn backend_badge(app: &App) -> Line<'static> {
 fn draw_status(f: &mut Frame, area: Rect, app: &App) {
     let hints = match app.screen {
         Screen::Home => "↑↓ select · enter open · tab/1-9 switch · q quit",
-        Screen::Train => "↑↓ config · enter start · r resume · p pause · s checkpoint · x stop · c config",
+        Screen::Train if app.train.watch.is_some() => {
+            "watching a run from another process · enter starts a new run · c config"
+        }
+        Screen::Train => {
+            "↑↓ config · enter start · r resume · w watch active run · p pause · s checkpoint · x stop · c config"
+        }
         Screen::Chat if app.chat.focus_input => "enter send · /help commands · esc stop/leave input · pgup/pgdn scroll",
         Screen::Chat => "enter/i type · ↑↓ scroll · tab/1-9 switch · q quit",
         Screen::Models => "↑↓ select · enter chat with model · R refresh",
@@ -294,7 +299,7 @@ fn train(f: &mut Frame, area: Rect, app: &App) {
         .map(|(p, c)| {
             let name = p.file_stem().unwrap().to_string_lossy().into_owned();
             let detail = match c {
-                Ok(c) => format!("{} · {} steps", c.run.stage.as_str(), c.schedule.max_steps),
+                Ok(c) => format!("{} · {}", c.run.stage.as_str(), format_count(c.schedule.max_steps as u64)),
                 Err(_) => "invalid".into(),
             };
             ListItem::new(Line::from(vec![
@@ -331,6 +336,7 @@ fn train(f: &mut Frame, area: Rect, app: &App) {
                 lines.push(Line::from(Span::styled("Press enter to start the selected config from", faint())));
                 lines.push(Line::from(Span::styled("random initialisation (or its init checkpoint),", faint())));
                 lines.push(Line::from(Span::styled("r to resume its latest checkpoint, c to view it.", faint())));
+                lines.push(Line::from(Span::styled("w watches a run started from another shell.", faint())));
             }
         }
         Some(info) => {
@@ -338,6 +344,8 @@ fn train(f: &mut Frame, area: Rect, app: &App) {
             let val = t.evals.last();
             let status = if t.summary.is_some() {
                 ("finished", GUM)
+            } else if t.watch.is_some() {
+                ("training · watching", GOLD)
             } else if t.error.is_some() {
                 ("failed", RED)
             } else if t.paused {
@@ -381,8 +389,10 @@ fn train(f: &mut Frame, area: Rect, app: &App) {
             } else {
                 lines.push(Line::from(Span::styled("compiling kernels and warming up…", faint())));
             }
-            if let Some(rss) = app.sys.process_rss {
-                lines.push(kv("process memory", format_bytes(rss)));
+            if t.watch.is_none() {
+                if let Some(rss) = app.sys.process_rss {
+                    lines.push(kv("process memory", format_bytes(rss)));
+                }
             }
             if let Some(g) = app.sys.gpu {
                 if let Some(u) = g.device_utilization {
@@ -459,6 +469,7 @@ fn train(f: &mut Frame, area: Rect, app: &App) {
     let [log_area, sample_area] =
         Layout::horizontal([Constraint::Percentage(55), Constraint::Percentage(45)]).areas(bottom);
     let h = log_area.height.saturating_sub(2) as usize;
+    let max_w = log_area.width.saturating_sub(10) as usize;
     let log_lines: Vec<Line> = t
         .log
         .iter()
@@ -474,13 +485,12 @@ fn train(f: &mut Frame, area: Rect, app: &App) {
                 EventKind::Error => ("error", RED),
                 EventKind::Info => ("info ", FAINT),
             };
-            Line::from(vec![
-                Span::styled(format!("{tag} "), Style::new().fg(c)),
-                Span::styled(m.clone(), theme::muted()),
-            ])
+            let msg: String = m.replace(" → checkpoints/best", "").chars().take(max_w).collect();
+            Line::from(vec![Span::styled(format!("{tag} "), Style::new().fg(c)), Span::styled(msg, theme::muted())])
         })
         .collect();
-    f.render_widget(Paragraph::new(log_lines).wrap(Wrap { trim: true }).block(panel("events", false)), log_area);
+    // One line per event, newest at the bottom, so the latest events are always visible.
+    f.render_widget(Paragraph::new(log_lines).block(panel("events", false)), log_area);
     let mut sl: Vec<Line> = Vec::new();
     for s in t.samples.iter().rev().take(3) {
         sl.push(Line::from(vec![
