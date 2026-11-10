@@ -389,10 +389,10 @@ fn train(f: &mut Frame, area: Rect, app: &App) {
             } else {
                 lines.push(Line::from(Span::styled("compiling kernels and warming up…", faint())));
             }
-            if t.watch.is_none() {
-                if let Some(rss) = app.sys.process_rss {
-                    lines.push(kv("process memory", format_bytes(rss)));
-                }
+            if t.watch.is_none()
+                && let Some(rss) = app.sys.process_rss
+            {
+                lines.push(kv("process memory", format_bytes(rss)));
             }
             if let Some(g) = app.sys.gpu {
                 if let Some(u) = g.device_utilization {

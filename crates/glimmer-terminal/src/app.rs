@@ -679,10 +679,8 @@ impl App {
                 }
             }
             KeyCode::Char('c') => self.train.show_config = !self.train.show_config,
-            KeyCode::Char('w') => {
-                if !self.watch_active() {
-                    self.toast("no active run to watch (runs/ with metrics written in the last 2 minutes)");
-                }
+            KeyCode::Char('w') if !self.watch_active() => {
+                self.toast("no active run to watch (runs/ with metrics written in the last 2 minutes)");
             }
             _ => {}
         }
