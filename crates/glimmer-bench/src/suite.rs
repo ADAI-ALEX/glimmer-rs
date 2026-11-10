@@ -206,3 +206,27 @@ pub fn tokenizer(c: &Ctx, tok: &Tokenizer, text: &str) -> Measurement {
     m.backend = "host".into();
     m
 }
+
+/// Host↔device transfer costs: uploading a training batch of token ids, and reading back one
+/// position's logits (what sampling does after every decoded token).
+pub fn transfer(c: &Ctx, batch: usize, seq: usize, vocab: usize) -> (Measurement, Measurement) {
+    let d = &c.device.device;
+    let mut rng = Rng::new(9);
+    let host: Vec<i64> = (0..batch * seq).map(|_| rng.below(vocab) as i64).collect();
+    let up = measure(c.warmup, c.iterations, || {
+        let t = Tensor::<2, Int>::from_data(TensorData::new(host.clone(), [batch, seq]), d);
+        // Force materialisation on the device before stopping the clock.
+        let _ = t.sum().into_scalar::<i64>();
+    });
+    let logits = Tensor::<2>::random([1, vocab], Distribution::Default, d);
+    let down = measure(c.warmup, c.iterations, || {
+        let v = (logits.clone() * 1.0).into_data().try_to_vec::<f32>().unwrap();
+        std::hint::black_box(v);
+    });
+    let kb_up = (batch * seq * 8) as f64 / 1e3;
+    let kb_down = (vocab * 4) as f64 / 1e3;
+    (
+        c.m("upload batch (host→device)", format!("{batch}×{seq} i64 ({kb_up:.0} KB)"), up, Some((kb_up / 1e3, "MB"))),
+        c.m("read logits (device→host)", format!("1×{vocab} f32 ({kb_down:.0} KB)"), down, Some((kb_down / 1e3, "MB"))),
+    )
+}

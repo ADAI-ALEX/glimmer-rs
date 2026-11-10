@@ -35,10 +35,19 @@ pub struct BenchArgs {
 }
 
 #[derive(Serialize)]
+struct MemorySample {
+    backend: String,
+    when: String,
+    gpu_in_use_bytes: Option<u64>,
+    process_rss_bytes: Option<u64>,
+}
+
+#[derive(Serialize)]
 struct BenchReport {
     hardware: HardwareReport,
     preset: ModelConfig,
     measurements: Vec<Measurement>,
+    memory: Vec<MemorySample>,
     unix: u64,
 }
 
@@ -64,6 +73,24 @@ pub fn run(ws: &Workspace, args: BenchArgs) -> Result<()> {
     let mut preset = ModelConfig::preset(&args.preset).ok_or_else(|| anyhow::anyhow!("unknown preset"))?;
     let (warmup, iters) = if args.quick { (2, 5) } else { (5, 20) };
     let mut all = Vec::new();
+    let mut memory = Vec::new();
+    let mut proc_mem = glimmer_core::hardware::ProcessMemory::new();
+    let snap = |backend: &str, when: &str, pm: &mut glimmer_core::hardware::ProcessMemory| {
+        let s = MemorySample {
+            backend: backend.to_string(),
+            when: when.to_string(),
+            gpu_in_use_bytes: glimmer_core::gpu::sample().and_then(|g| g.in_use_memory),
+            process_rss_bytes: pm.resident_bytes(),
+        };
+        println!(
+            "  {:<28} {:<34} gpu in-use {:>10}  process {:>10}",
+            "memory",
+            dim(when),
+            s.gpu_in_use_bytes.map(format_bytes).unwrap_or_else(|| "—".into()),
+            s.process_rss_bytes.map(format_bytes).unwrap_or_else(|| "—".into())
+        );
+        s
+    };
     for kind in kinds {
         let dev = match backend::select(kind) {
             Ok(d) => d,
@@ -108,7 +135,8 @@ pub fn run(ws: &Workspace, args: BenchArgs) -> Result<()> {
             // Keep CPU runs short: the CPU backend is an order of magnitude slower.
             preset.context_length = preset.context_length.min(256);
         }
-        let batch = if is_cpu { 4 } else { 16 };
+        let batch = if is_cpu { 4 } else { 8 };
+        memory.push(snap(&dev.label(), "before model benchmarks", &mut proc_mem));
         let m = suite::forward(&c, &preset, batch);
         print(&m);
         all.push(m);
@@ -116,6 +144,12 @@ pub fn run(ws: &Workspace, args: BenchArgs) -> Result<()> {
         let m = suite::train_step(&tc, &preset, batch);
         print(&m);
         all.push(m);
+        memory.push(snap(&dev.label(), "after training-step benchmark", &mut proc_mem));
+        let (u, dl) = suite::transfer(&c, 8, preset.context_length, preset.vocab_size);
+        print(&u);
+        print(&dl);
+        all.push(u);
+        all.push(dl);
         let (a, b) = suite::decode(&c, &preset, 64)?;
         print(&a);
         print(&b);
@@ -160,6 +194,7 @@ pub fn run(ws: &Workspace, args: BenchArgs) -> Result<()> {
         hardware: hw,
         preset: ModelConfig::preset(&args.preset).unwrap(),
         measurements: all,
+        memory,
         unix: glimmer_core::time::now_unix(),
     };
     std::fs::write(&out, serde_json::to_string_pretty(&report)?)?;

@@ -105,7 +105,7 @@ impl Engine {
     /// Load a registered model (`models/<name>`), a model directory or a checkpoint directory.
     pub fn load(ws: &Workspace, reference: &str, backend_kind: BackendKind) -> Result<Self> {
         let reg = glimmer_core::registry::resolve_model(&ws.models_dir(), &ws.root, reference)?;
-        let device = backend::select(backend_kind)?;
+        let device = backend::select_for_inference(backend_kind)?;
         Self::load_dir(&reg, device)
     }
 

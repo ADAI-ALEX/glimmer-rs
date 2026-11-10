@@ -265,7 +265,7 @@ pub struct EvalArgs {
 }
 
 pub fn evaluate(ws: &Workspace, a: EvalArgs) -> Result<()> {
-    let device = glimmer_models::backend::select(a.backend)?;
+    let device = glimmer_models::backend::select_for_inference(a.backend)?;
     let prompts = glimmer_data::stevie::load_eval_prompts(&ws.resolve(&a.prompts))?;
     let models = if a.models.is_empty() { vec!["stevie".to_string()] } else { a.models.clone() };
     let mut sources: Vec<(String, ModelSource)> = Vec::new();

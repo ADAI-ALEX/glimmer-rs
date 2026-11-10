@@ -1,0 +1,148 @@
+# STEVIE corpus — remembering details from earlier in the conversation.
+# Names, places and facts vary so the skill (using context) is learned, not the answers.
+
+### mem-001 | memory
+U: Hi, I'm Mia.
+S: G'day Mia! Lovely to meet you. What's on your mind?
+U: Not much. Do you remember my name?
+S: Of course, it's Mia! Only just met, but I'm paying attention.
+
+### mem-002 | memory
+U: My dog is called Buster.
+S: Great name! What kind of dog is Buster?
+U: A border collie.
+S: Smart breed! Border collies love having a job to do. Does Buster herd anything at home?
+U: Just the cat. What's my dog's name again?
+S: It's Buster, your border collie who herds the cat. Sounds like a legend.
+
+### mem-003 | memory
+U: I live in Darwin.
+S: Ah, the Top End! Warm all year round. How do you find the wet season?
+U: It's intense. Remind me, where did I say I live?
+S: Darwin! Up in the tropics, where the wet season storms are something else.
+
+### mem-004 | memory
+U: My name's Liam and I'm a nurse.
+S: Good to meet you, Liam. Nursing is a huge job. Do you work shifts?
+U: Night shifts mostly.
+S: Night shifts are tough on the body clock. Make sure you get proper rest, Liam.
+U: What's my job?
+S: You're a nurse, Liam, working mostly night shifts.
+
+### mem-005 | memory
+U: My favourite food is laksa.
+S: Oh, good choice! Spicy, creamy and full of flavour. Do you make it yourself?
+U: No, I get it from a little place near work. What did I say my favourite food was?
+S: Laksa! From the little place near your work. Now I'm hungry.
+
+### mem-006 | memory
+U: I'm Zara, and I've got a cat called Moose.
+S: Hi Zara! Moose is a brilliant name for a cat. Is Moose a big cat?
+U: Massive. Who's Moose again?
+S: Moose is your massive cat, Zara!
+
+### mem-007 | memory
+U: I'm going to Perth next week.
+S: Nice! For work or a holiday?
+U: Visiting my brother.
+S: Lovely. Perth sunsets over the ocean are worth the trip on their own.
+U: Where am I going next week?
+S: You're off to Perth to visit your brother.
+
+### mem-008 | memory
+U: My son's name is Oscar and he's six.
+S: Six is such a fun age! What's Oscar into at the moment?
+U: Dinosaurs and soccer.
+S: Great combo. Maybe a soccer ball with dinosaurs on it for his next birthday?
+U: Ha! How old did I say Oscar is?
+S: Oscar is six, and he loves dinosaurs and soccer.
+
+### mem-009 | memory
+U: I play the violin.
+S: Beautiful instrument! How long have you been playing?
+U: About ten years.
+S: Ten years, that's real dedication. Do you play in an orchestra?
+U: No, just for fun. What instrument do I play?
+S: You play the violin, and you've been at it for about ten years.
+
+### mem-010 | memory
+U: Call me Sunny.
+S: Will do, Sunny! What's happening today?
+U: Just relaxing. What should you call me?
+S: Sunny! Easy to remember, and it suits a relaxing day.
+
+### mem-011 | memory
+U: I'm studying marine biology.
+S: Brilliant! Any particular area you're interested in?
+U: Sharks, actually.
+S: Sharks are fascinating and really misunderstood. Great field to get into.
+U: What am I studying?
+S: Marine biology, with a special interest in sharks.
+
+### mem-012 | memory
+U: My hometown is Ballarat.
+S: Ah, Ballarat! Gold rush history and chilly winters. Do you still live there?
+U: No, I moved to Melbourne. Where's my hometown?
+S: Ballarat, before you moved to Melbourne.
+
+### mem-013 | memory
+U: Hi Stevie, my name is Ahmed.
+S: G'day Ahmed! What can I do for you today?
+U: I need a dinner idea.
+S: How about a quick curry or a stir-fry, Ahmed? Both are fast and flexible.
+U: Curry sounds good. Thanks, Stevie. By the way, do you know my name?
+S: You're Ahmed! Enjoy that curry.
+
+### mem-014 | memory
+U: I have two kids, Ella and Jack.
+S: Lovely! How old are Ella and Jack?
+U: Ella is nine and Jack is four.
+S: A fun age gap. Ella can probably help keep Jack entertained.
+U: What are my kids' names?
+S: Ella and Jack. Ella's nine and Jack's four.
+
+### mem-015 | memory
+U: My favourite animal is the octopus.
+S: Excellent choice! Three hearts and incredibly clever. What got you into octopuses?
+U: A documentary. Do you remember my favourite animal?
+S: The octopus! Thanks to a documentary.
+
+### mem-016 | memory
+U: I'm training for a marathon in Gold Coast.
+S: Good on ya! When's the race?
+U: In July.
+S: July on the Gold Coast is good running weather, cool and dry. How's the training going?
+U: Pretty well. Which marathon am I training for?
+S: The Gold Coast marathon in July.
+
+### mem-017 | memory
+U: My car is a red ute.
+S: Classic Aussie wheels! Do you use it for work?
+U: Yeah, I'm a carpenter.
+S: Perfect for hauling timber and tools. Utes and carpentry go together like snags and bread.
+U: Do you remember what colour my ute is?
+S: Red! A red ute, perfect for a carpenter.
+
+### mem-018 | memory
+U: I'm Grace and I just started at uni.
+S: Congrats, Grace! What are you studying?
+U: Engineering.
+S: Great choice, Grace. Engineering is challenging but really rewarding.
+U: What's my name and what do I study?
+S: You're Grace, and you're studying engineering at uni.
+
+### mem-019 | memory
+U: I just planted a lemon tree.
+S: Lovely! Lemon trees love sun and well-drained soil. Is it in a pot or the ground?
+U: In a big pot on the deck.
+S: Good spot. Keep it watered in summer and feed it with citrus fertiliser.
+U: What did I plant?
+S: A lemon tree, in a big pot on your deck.
+
+### mem-020 | memory
+U: My birthday is on Christmas Day.
+S: Oh wow, a Christmas birthday! Do people combine your presents?
+U: All the time.
+S: Ha, that's the classic complaint. You deserve two separate celebrations!
+U: When's my birthday?
+S: Christmas Day! Which means you deserve double the cake.

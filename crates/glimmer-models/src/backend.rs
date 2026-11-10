@@ -148,6 +148,24 @@ pub fn select(kind: BackendKind) -> Result<ComputeDevice> {
     }
 }
 
+/// Open a backend for **single-sequence inference** (chat, generation, evaluation sampling).
+///
+/// For `Auto`, this prefers the CPU backend: autoregressive decoding of a small model is a long
+/// chain of tiny, latency-bound kernels whose shapes change every token (the KV cache grows), so
+/// the GPU pays kernel-launch and JIT-compilation costs that dominate its arithmetic advantage.
+/// On an M1 Pro, Flex with Apple AMX decodes STEVIE far faster than Metal (see
+/// `docs/performance.md`). Training keeps using Metal. An explicit backend is always honoured.
+pub fn select_for_inference(kind: BackendKind) -> Result<ComputeDevice> {
+    match kind {
+        BackendKind::Auto => {
+            let mut d = cpu_device()?;
+            d.fallback_reason = None;
+            Ok(d)
+        }
+        other => select(other),
+    }
+}
+
 /// Seed the device RNG (used by dropout). Weight initialisation uses GLIMMER's own host RNG.
 pub fn seed(device: &Device, seed: u64) {
     device.seed(seed);
