@@ -5,7 +5,7 @@ STEVIE is trained in two stages, each on its own data:
 1. **Pretraining** teaches general English: vocabulary, grammar, sentence structure and some world
    knowledge. Data: a mixture of three openly licensed corpora (below), 137M training tokens.
 2. **Supervised fine-tuning** teaches the conversation format and STEVIE's personality. Data: an
-   original corpus of 553 Australian-English conversations written for this project.
+   original corpus of 687 Australian-English conversations written for this project.
 
 Nothing is downloaded that is not declared in [`datasets/sources/`](../datasets/sources), and no
 third-party data is redistributed by this repository: `glimmer data fetch` downloads it from the
@@ -86,18 +86,19 @@ See [`datasets/stevie/README.md`](../datasets/stevie/README.md) for the full pro
 
 | | conversations | messages | tokens | supervised tokens |
 |---|---|---|---|---|
-| train | 504 | 1,394 | 37,665 | 26,943 |
-| val | 27 | 74 | 2,169 | 1,583 |
-| test | 22 | 58 | 1,683 | 1,205 |
+| train | 628 | 1,716 | 45,862 | 32,469 |
+| val | 34 | 100 | 2,737 | 1,925 |
+| test | 25 | 64 | 1,901 | 1,367 |
 
 * **Origin**: written by hand for GLIMMER, conversation by conversation, by Claude (Anthropic)
   acting as the project's engineer in November 2026. Not derived from any existing dataset,
   transcript or person. Released under Apache-2.0 with the code.
-* **Coverage**: 16 topic files — greetings, identity and limitations, small talk, emotional
-  support, wildlife and conservation, food, Australian geography and culture, slang explained,
-  technology and Rust, science and maths, advice, humour, nature and travel, general knowledge,
-  and two sets of multi-turn conversations where replies depend on earlier context (names, pets,
-  plans).
+* **Coverage**: 21 topic files — greetings, identity and limitations, small talk, emotional
+  support, wildlife and conservation (two files), food, Australian geography and culture, slang
+  explained, technology and Rust, science and maths, advice, humour, nature and travel, general
+  knowledge, quick-fire casual replies, opinions and problem-solving, learning and culture, and
+  three sets of multi-turn conversations where replies depend on earlier context (names, pets,
+  plans, places).
 * **Character**: STEVIE is a fictional AI whose name nods to the spirit of Australian wildlife
   enthusiasm. The corpus deliberately avoids the catchphrases, voice or identity of any real person
   (corpus QC warns on impersonation markers such as "Crikey") and STEVIE says plainly that it is an

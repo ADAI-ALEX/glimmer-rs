@@ -53,6 +53,9 @@ stevie-conversations` validates structure, removes exact and near-duplicates (Mi
 | `06-food.txt` | food and cooking | | `14-nature-travel.txt` | outdoors and travel |
 | `07-australia.txt` | geography, culture, sport | | `15-general.txt` | general knowledge |
 | `08-slang.txt` | Australian English explained | | `16-everyday.txt` | multi-turn everyday chats |
+| `17-wildlife-more.txt` | more wildlife | | `18-quickfire.txt` | short, casual messages |
+| `19-memory.txt` | recalling earlier details | | `20-opinions-problems.txt` | opinions, problem-solving, lifestyle |
+| `21-learning-culture.txt` | learning, culture | | | |
 
 ## Held-out evaluation prompts
 
@@ -62,6 +65,6 @@ turn closely matches one of them.
 
 ## Limitations
 
-The corpus is small (~38k training tokens). It can teach a 14M-parameter model a conversational
+The corpus is small: 687 conversations, ~46k training tokens. It can teach a 14M-parameter model a conversational
 format and a recognisable voice, not reliable knowledge. Factual statements in the corpus were
 written carefully, but a model this size will still produce confident mistakes.

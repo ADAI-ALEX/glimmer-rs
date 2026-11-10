@@ -5,7 +5,7 @@ STEVIE is trained in two stages, both starting points recorded in its model card
 | stage | starts from | data | objective |
 |---|---|---|---|
 | 1. pretraining | **random initialisation** (seed 1337) | `pretrain-mix`: 137M tokens of general English | next-token prediction on every token |
-| 2. supervised fine-tuning | best stage-1 checkpoint | `stevie-sft`: 563 original conversations | next-token prediction on STEVIE's turns only |
+| 2. supervised fine-tuning | best stage-1 checkpoint | `stevie-sft`: 628 original conversations | next-token prediction on STEVIE's turns only |
 
 No pretrained model, tokenizer or weights from any other project are used at any point.
 
@@ -107,7 +107,7 @@ Config: [`configs/training/stevie-sft.toml`](../configs/training/stevie-sft.toml
   System prompts, user turns, role tags and padding contribute nothing. STEVIE learns to answer,
   not to imitate users, and learns when to stop.
 * **System prompt**: half the examples include "You are Stevie, a friendly Australian AI mate."
-* **Regularisation**: the corpus is small (~41k tokens per epoch), so validation runs every 10
+* **Regularisation**: the corpus is small (~46k tokens per epoch), so validation runs every 10
   steps, early stopping has a patience of 8 evaluations, and the best checkpoint is exported.
 * **Hyperparameters**: learning rate, weight decay and dropout come from a TPE + successive-halving
   study (see [optimisation.md](optimisation.md)).

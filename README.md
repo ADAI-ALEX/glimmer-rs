@@ -150,7 +150,7 @@ flowchart LR
 |  | pretraining | supervised fine-tuning |
 |---|---|---|
 | starts from | random initialisation | best pretraining checkpoint |
-| data | 137M tokens of openly licensed English | 579 original Australian conversations (42k tokens) |
+| data | 137M tokens of openly licensed English | 628 original Australian conversations (46k tokens) |
 | what is supervised | every next token | only STEVIE's turns and their closing `<|end|>` |
 | batching | random 512-token windows | whole conversations packed into 512-token rows, attention isolated per conversation |
 | what it teaches | grammar, vocabulary, fluency, some world knowledge | the chat format, when to stop, STEVIE's voice |
@@ -198,7 +198,7 @@ The first Metal run compiles and autotunes GPU kernels (around 20 seconds); late
 | [TinyStories V2](https://huggingface.co/datasets/roneneldan/TinyStories) (Eldan & Li, 2023) | CDLA-Sharing-1.0 | fluent simple narrative | 60.8M |
 | [Simple English Wikipedia](https://huggingface.co/datasets/wikimedia/wikipedia) (2023-11-01) | CC BY-SA 3.0 / GFDL | expository vocabulary, world knowledge | 70.7M |
 | [28 Australian public-domain books](datasets/sources/gutenberg-au.toml) (Project Gutenberg) | Public domain (AU & US) | authentic Australian English | 5.6M ×2 |
-| [STEVIE conversations](datasets/stevie) (original) | Apache-2.0 | personality and chat format | 42k |
+| [STEVIE conversations](datasets/stevie) (original, 687) | Apache-2.0 | personality and chat format | 46k |
 
 Third-party text is downloaded from its original host by `glimmer data fetch` and never
 redistributed here. Each author's year of death is recorded to document public-domain status; slurs
