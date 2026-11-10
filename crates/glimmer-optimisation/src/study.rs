@@ -73,13 +73,18 @@ impl StudyConfig {
         match &self.successive_halving {
             None => vec![self.steps],
             Some(h) => {
-                let mut v = Vec::new();
-                let mut b = h.min_steps.max(1);
-                while b < self.steps {
+                // Work down from the full budget so the last rung is exactly `steps`.
+                let eta = h.eta.max(2);
+                let mut v = vec![self.steps];
+                let mut b = self.steps;
+                loop {
+                    b /= eta;
+                    if b < h.min_steps.max(1) {
+                        break;
+                    }
                     v.push(b);
-                    b *= h.eta.max(2);
                 }
-                v.push(self.steps);
+                v.reverse();
                 v
             }
         }
@@ -361,7 +366,10 @@ mod tests {
             space: vec![],
         };
         assert_eq!(c.rungs(), vec![100, 300, 900]);
+        c.steps = 200;
+        c.successive_halving = Some(HalvingConfig { eta: 3, min_steps: 22 });
+        assert_eq!(c.rungs(), vec![22, 66, 200]);
         c.successive_halving = None;
-        assert_eq!(c.rungs(), vec![900]);
+        assert_eq!(c.rungs(), vec![200]);
     }
 }

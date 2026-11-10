@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 320" width="1280" height="320" role="img" aria-label="GLIMMER — train small language models from scratch, in Rust">
+  <defs>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FCDA92"/>
+      <stop offset="1" stop-color="#D98A44"/>
+    </linearGradient>
+    <linearGradient id="word" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FAD68C"/>
+      <stop offset="1" stop-color="#D68C46"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#F2C46E" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#F2C46E" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0 H0 V32" fill="none" stroke="#1C1F27" stroke-width="1"/>
+    </pattern>
+    <linearGradient id="fade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#0D0E12" stop-opacity="1"/>
+      <stop offset="0.55" stop-color="#0D0E12" stop-opacity="0.92"/>
+      <stop offset="1" stop-color="#0D0E12" stop-opacity="0.2"/>
+    </linearGradient>
+  </defs>
+  <rect width="1280" height="320" rx="20" fill="#0D0E12"/>
+  <rect width="1280" height="320" rx="20" fill="url(#grid)"/>
+  <!-- stylised loss curves: training (gold) and validation (blue) -->
+  <polyline fill="none" stroke="#D98A44" stroke-opacity="0.55" stroke-width="2.5" stroke-linecap="round"
+    points="700,52 724,96 748,132 772,160 800,184 830,203 864,218 900,231 940,241 984,249 1032,256 1084,261 1140,265 1200,268 1252,270"/>
+  <polyline fill="none" stroke="#7DA6F7" stroke-opacity="0.5" stroke-width="2" stroke-dasharray="2 7" stroke-linecap="round"
+    points="724,104 772,166 830,209 900,237 984,255 1084,266 1200,273 1252,275"/>
+  <rect width="1280" height="320" rx="20" fill="url(#fade)"/>
+  <rect x="0.5" y="0.5" width="1279" height="319" rx="19.5" fill="none" stroke="#2E323E"/>
+  <circle cx="148" cy="160" r="96" fill="url(#glow)"/>
+  <g transform="translate(84 96)">
+    <path d="M62 4 C66 38 80 52 116 56 C80 60 66 74 62 108 C58 74 44 60 8 56 C44 52 58 38 62 4 Z" fill="url(#gold)"/>
+    <path d="M104 0 C105 9 108 12 117 13 C108 14 105 17 104 26 C103 17 100 14 91 13 C100 12 103 9 104 0 Z" fill="#FCDA92" opacity="0.9"/>
+  </g>
+  <text x="252" y="174" font-family="'SF Mono','JetBrains Mono',Menlo,Consolas,monospace" font-size="86" font-weight="700" letter-spacing="12" fill="url(#word)">GLIMMER</text>
+  <text x="256" y="220" font-family="'SF Pro Text','Inter','Helvetica Neue',Arial,sans-serif" font-size="25" fill="#A9AEBB">Train small language models from scratch — entirely in Rust.</text>
+  <text x="256" y="256" font-family="'SF Mono','JetBrains Mono',Menlo,Consolas,monospace" font-size="17" fill="#6E7486" letter-spacing="1">burn · metal · ratatui · byte-level BPE · from random weights to a chatty Aussie mate</text>
+</svg>

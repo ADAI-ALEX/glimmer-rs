@@ -1,0 +1,9 @@
+[package]
+name = "spike_burn"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+burn = { version = "0.22.1", default-features = false, features = ["std", "metal", "flex", "rayon", "simd", "apple-amx", "autodiff", "fusion", "autotune", "optim", "store", "safetensors"] }
+
+[workspace]

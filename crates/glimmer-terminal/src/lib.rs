@@ -26,12 +26,14 @@ use std::time::{Duration, Instant};
 /// type How ya going? # type text (into the chat box when it has focus)
 /// key enter          # enter, esc, tab, up, down, pgup, pgdn, or a single character
 /// idle               # wait until STEVIE finishes replying
+/// train-idle         # wait until the current training run finishes
 /// quit
 /// ```
 enum Step {
     Wait(u64),
     Keys(Vec<KeyEvent>),
     Idle,
+    TrainIdle,
 }
 
 fn key(code: KeyCode) -> KeyEvent {
@@ -45,6 +47,7 @@ fn parse_script(text: &str) -> VecDeque<Step> {
         match cmd {
             "wait" => steps.push_back(Step::Wait(arg.trim().parse().unwrap_or(500))),
             "idle" => steps.push_back(Step::Idle),
+            "train-idle" => steps.push_back(Step::TrainIdle),
             "type" => steps.push_back(Step::Keys(arg.chars().map(|c| key(KeyCode::Char(c))).collect())),
             "screen" => steps.push_back(Step::Keys(arg.trim().chars().map(|c| key(KeyCode::Char(c))).collect())),
             "quit" => steps.push_back(Step::Keys(vec![KeyEvent::new(KeyCode::Char('c'), KeyModifiers::CONTROL)])),
@@ -94,6 +97,12 @@ pub fn run(ws: Workspace, initial: Screen, model: Option<String>, backend: Backe
                             script.push_front(Step::Idle);
                         }
                         next_step = Instant::now() + Duration::from_millis(100);
+                    }
+                    Some(Step::TrainIdle) => {
+                        if app.training_active() {
+                            script.push_front(Step::TrainIdle);
+                        }
+                        next_step = Instant::now() + Duration::from_millis(250);
                     }
                     None => {}
                 }

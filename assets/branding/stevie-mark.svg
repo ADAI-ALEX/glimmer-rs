@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" role="img" aria-label="STEVIE">
+  <defs>
+    <linearGradient id="leaf" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#5FA67C"/>
+      <stop offset="1" stop-color="#A8DDB9"/>
+    </linearGradient>
+  </defs>
+  <circle cx="64" cy="64" r="63" fill="#0D0E12"/>
+  <circle cx="64" cy="64" r="62.5" fill="none" stroke="#2E323E"/>
+  <circle cx="88" cy="90" r="10" fill="#D6864E"/>
+  <path d="M30 100 C24 62 52 34 98 26 C100 68 74 96 30 100 Z" fill="url(#leaf)"/>
+  <path d="M30 100 C50 80 72 56 98 26" fill="none" stroke="#0D0E12" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+  <path d="M48 82 L44 66 M60 70 L58 54 M72 58 L72 44 M56 76 L70 74 M68 64 L82 60" fill="none" stroke="#0D0E12" stroke-width="2" stroke-linecap="round" opacity="0.28"/>
+</svg>

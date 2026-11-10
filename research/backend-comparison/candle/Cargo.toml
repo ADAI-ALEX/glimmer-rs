@@ -1,0 +1,10 @@
+[package]
+name = "spike_candle"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+candle-core = { version = "0.11.1", features = ["metal"] }
+candle-nn = { version = "0.11.1", features = ["metal"] }
+
+[workspace]

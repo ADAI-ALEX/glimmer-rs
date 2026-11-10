@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 720" width="760" height="720" role="img" aria-label="GLIMMER decoder-only transformer architecture">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#8A90A0"/>
+    </marker>
+    <style>
+      .t { font-family: 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace; font-size: 14px; fill: #DEE0E6; }
+      .s { font-family: 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace; font-size: 12px; fill: #8A90A0; }
+      .h { font-family: 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace; font-size: 13px; fill: #F2C46E; font-weight: 700; }
+      .box { fill: #1A1D24; stroke: #3A3F4C; stroke-width: 1.2; }
+      .gold { fill: #2A2418; stroke: #B88A4A; stroke-width: 1.2; }
+      .blue { fill: #182030; stroke: #5B7FC4; stroke-width: 1.2; }
+      .green { fill: #172A20; stroke: #5FA67C; stroke-width: 1.2; }
+      .line { stroke: #8A90A0; stroke-width: 1.4; fill: none; }
+    </style>
+  </defs>
+  <rect width="760" height="720" rx="18" fill="#0D0E12"/>
+  <text class="h" x="32" y="40">GLIMMER · decoder-only transformer (STEVIE: tiny preset)</text>
+
+  <!-- input -->
+  <rect class="box" x="205" y="640" width="350" height="40" rx="8"/>
+  <text class="t" x="380" y="665" text-anchor="middle">token ids  [batch × 512]</text>
+  <line class="line" x1="380" y1="640" x2="380" y2="612" marker-end="url(#arrow)"/>
+  <rect class="gold" x="205" y="572" width="350" height="40" rx="8"/>
+  <text class="t" x="380" y="597" text-anchor="middle">token embedding  8192 × 384</text>
+  <line class="line" x1="380" y1="572" x2="380" y2="540" marker-end="url(#arrow)"/>
+
+  <!-- block -->
+  <rect x="150" y="150" width="460" height="390" rx="14" fill="none" stroke="#B88A4A" stroke-dasharray="5 5"/>
+  <text class="h" x="168" y="174">transformer block × 6</text>
+
+  <rect class="box" x="205" y="486" width="350" height="34" rx="8"/>
+  <text class="t" x="380" y="508" text-anchor="middle">RMSNorm</text>
+  <line class="line" x1="380" y1="486" x2="380" y2="462" marker-end="url(#arrow)"/>
+  <rect class="blue" x="205" y="400" width="350" height="62" rx="8"/>
+  <text class="t" x="380" y="424" text-anchor="middle">causal self-attention · 6 heads × 64</text>
+  <text class="s" x="380" y="446" text-anchor="middle">Wqkv · RoPE(q, k) · softmax(qkᵀ/√d) v · Wo</text>
+  <line class="line" x1="380" y1="400" x2="380" y2="376" marker-end="url(#arrow)"/>
+  <circle cx="380" cy="364" r="12" fill="#1A1D24" stroke="#8A90A0"/>
+  <text class="t" x="380" y="369" text-anchor="middle">+</text>
+  <path class="line" d="M 380 530 L 590 530 L 590 364 L 394 364" marker-end="url(#arrow)"/>
+  <text class="s" x="598" y="450">residual</text>
+
+  <line class="line" x1="380" y1="352" x2="380" y2="330" marker-end="url(#arrow)"/>
+  <rect class="box" x="205" y="296" width="350" height="34" rx="8"/>
+  <text class="t" x="380" y="318" text-anchor="middle">RMSNorm</text>
+  <line class="line" x1="380" y1="296" x2="380" y2="272" marker-end="url(#arrow)"/>
+  <rect class="green" x="205" y="210" width="350" height="62" rx="8"/>
+  <text class="t" x="380" y="234" text-anchor="middle">SwiGLU feed-forward  384 → 1024 → 384</text>
+  <text class="s" x="380" y="256" text-anchor="middle">W_down( silu(W_gate·x) ⊙ W_up·x )</text>
+  <line class="line" x1="380" y1="210" x2="380" y2="186" marker-end="url(#arrow)"/>
+  <circle cx="380" cy="174" r="12" fill="#1A1D24" stroke="#8A90A0"/>
+  <text class="t" x="380" y="179" text-anchor="middle">+</text>
+  <path class="line" d="M 380 344 L 570 344 L 570 174 L 394 174" marker-end="url(#arrow)"/>
+
+  <!-- output -->
+  <line class="line" x1="380" y1="162" x2="380" y2="136" marker-end="url(#arrow)"/>
+  <rect class="box" x="205" y="102" width="350" height="34" rx="8"/>
+  <text class="t" x="380" y="124" text-anchor="middle">RMSNorm</text>
+  <line class="line" x1="380" y1="102" x2="380" y2="80" marker-end="url(#arrow)"/>
+  <rect class="gold" x="205" y="46" width="350" height="34" rx="8"/>
+  <text class="t" x="380" y="68" text-anchor="middle">LM head (tied to embedding) → logits</text>
+  <path d="M 205 592 C 110 592 110 63 201 63" fill="none" stroke="#B88A4A" stroke-width="1.2" stroke-dasharray="3 4"/>
+  <text class="s" x="40" y="330">shared</text>
+  <text class="s" x="40" y="346">weights</text>
+
+  <!-- side notes -->
+  <text class="s" x="640" y="610">13.8M params</text>
+  <text class="s" x="640" y="628">context 512</text>
+  <text class="s" x="640" y="646">vocab 8192</text>
+  <text class="s" x="640" y="664">f32 · Metal</text>
+</svg>
