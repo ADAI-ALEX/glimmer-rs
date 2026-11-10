@@ -1,0 +1,20 @@
+# Chat with STEVIE (used for assets/screenshots/chat.png). Replies are generated live.
+wait 4000
+idle
+type G'day Stevie, how's your day been?
+key enter
+idle
+wait 600
+type What's your favourite animal?
+key enter
+idle
+wait 600
+type I've had a really rubbish day.
+key enter
+idle
+wait 600
+type Thanks mate. Any tips for a long flight tomorrow?
+key enter
+idle
+wait 30000
+quit

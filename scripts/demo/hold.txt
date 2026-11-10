@@ -1,0 +1,3 @@
+# Keep a screen open long enough to capture it.
+wait 20000
+quit

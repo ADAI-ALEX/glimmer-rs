@@ -1,0 +1,8 @@
+# Launch STEVIE's fine-tuning from the training lab (assets/screenshots/training.png).
+wait 2500
+key down
+key down
+key enter
+train-idle
+wait 4000
+quit
