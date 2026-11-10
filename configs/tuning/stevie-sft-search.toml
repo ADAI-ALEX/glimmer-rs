@@ -11,6 +11,10 @@ sampler = "tpe"
 trials = 18
 steps = 200
 seed = 2026
+# Score trials by their best validation loss (evaluated every 11 steps), matching the final run,
+# which keeps its best checkpoint with early stopping.
+objective = "best"
+eval_every = 11
 
 [successive_halving]
 eta = 3

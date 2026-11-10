@@ -21,6 +21,18 @@ use std::collections::BTreeMap;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
+/// Which validation loss scores a trial.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum Objective {
+    /// Validation loss at the end of the trial's budget (or rung).
+    #[default]
+    Last,
+    /// Best validation loss seen so far — matches runs that keep their best checkpoint
+    /// (early stopping), which is how fine-tuned models are exported.
+    Best,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct HalvingConfig {
     /// Promotion factor: keep the best `1/eta` at each rung.
@@ -48,6 +60,11 @@ pub struct StudyConfig {
     pub seed: u64,
     #[serde(default)]
     pub backend: Option<BackendKind>,
+    #[serde(default)]
+    pub objective: Objective,
+    /// Evaluate every N steps inside trials (default: only at rung boundaries and the end).
+    #[serde(default)]
+    pub eval_every: Option<usize>,
     pub space: Vec<ParamSpec>,
 }
 
@@ -173,7 +190,8 @@ pub fn run_study(
         tc.run.seed = cfg.seed.wrapping_add(trial as u64);
         tc.schedule.max_steps = cfg.steps;
         tc.schedule.warmup_steps = tc.schedule.warmup_steps.min(cfg.steps / 4);
-        tc.eval.every = cfg.steps; // evaluate at rung boundaries and the end only
+        // Evaluate at rung boundaries and the end, plus every `eval_every` steps if requested.
+        tc.eval.every = cfg.eval_every.unwrap_or(cfg.steps).max(1);
         tc.eval.sample_prompts = false;
         tc.checkpoint.every = 0;
         tc.early_stopping.patience = 0;
@@ -199,7 +217,11 @@ pub fn run_study(
             rung,
             budget,
             params: params.clone(),
-            val_loss: summary.last_val_loss.filter(|v| v.is_finite()),
+            val_loss: match cfg.objective {
+                Objective::Last => summary.last_val_loss,
+                Objective::Best => summary.best_val_loss,
+            }
+            .filter(|v| v.is_finite()),
             train_loss: summary.final_train_loss,
             tokens: summary.tokens_seen,
             wall_secs: summary.wall_secs,
@@ -288,11 +310,12 @@ pub fn run_study(
 pub fn report(cfg: &StudyConfig, s: &StudySummary) -> String {
     let mut out = format!("# Study `{}`\n\n{}\n\n", s.name, cfg.description);
     out.push_str(&format!(
-        "* Sampler: `{:?}` · trials: {} · full budget: {} steps · rungs: {:?}\n* Base config: `{}`\n* Wall time: {:.1} min\n\n",
+        "* Sampler: `{:?}` · trials: {} · full budget: {} steps · rungs: {:?} · objective: {:?} validation loss\n* Base config: `{}`\n* Wall time: {:.1} min\n\n",
         cfg.sampler,
         cfg.trials,
         cfg.steps,
         s.rungs,
+        cfg.objective,
         cfg.base_config,
         s.wall_secs / 60.0
     ));
@@ -363,6 +386,8 @@ mod tests {
             successive_halving: Some(HalvingConfig { eta: 3, min_steps: 100 }),
             seed: 1,
             backend: None,
+            objective: Objective::Last,
+            eval_every: None,
             space: vec![],
         };
         assert_eq!(c.rungs(), vec![100, 300, 900]);

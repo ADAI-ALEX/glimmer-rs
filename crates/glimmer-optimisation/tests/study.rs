@@ -84,6 +84,8 @@ fn successive_halving_promotes_and_resumes() {
         successive_halving: Some(HalvingConfig { eta: 2, min_steps: 10 }),
         seed: 5,
         backend: None,
+        objective: glimmer_optimisation::study::Objective::Best,
+        eval_every: Some(5),
         space: vec![ParamSpec::LogUniform { name: "lr".into(), low: 1e-4, high: 1e-2 }],
     };
     let ctl = TrainControl::new();
