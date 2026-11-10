@@ -101,3 +101,14 @@ impl Workspace {
         self.root.join("conversations")
     }
 }
+
+/// Show a path under the home directory as `~/…`, so it can be displayed or shared without
+/// revealing the full local path.
+pub fn home_relative(p: &Path) -> String {
+    match std::env::var_os("HOME").map(PathBuf::from) {
+        Some(home) if !home.as_os_str().is_empty() && p.starts_with(&home) => {
+            format!("~/{}", p.strip_prefix(&home).unwrap_or(p).display())
+        }
+        _ => p.display().to_string(),
+    }
+}

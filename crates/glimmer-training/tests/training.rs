@@ -222,3 +222,34 @@ fn gradient_accumulation_matches_large_batch() {
     }
     std::fs::remove_dir_all(&ws.root).ok();
 }
+
+#[test]
+fn exported_model_records_every_training_stage() {
+    // Stage 1 from random init, stage 2 initialised from stage 1's best checkpoint and exported:
+    // the model card must list both stages (a regression test: it once listed only the last).
+    let (ws, _) = pretrain_ws("lineage");
+    let ctl = TrainControl::new();
+    let first = train(&ws, TrainOptions::new(config(Stage::Pretrain, "tiny", 20)), &ctl, &mut |_| {}).unwrap();
+    let mut cfg = config(Stage::Pretrain, "tiny", 10);
+    cfg.run.name = "second".into();
+    cfg.run.export_as = Some("two-stage".into());
+    cfg.init.from_checkpoint = Some(first.best_checkpoint.clone().unwrap().to_string_lossy().into_owned());
+    let second = train(&ws, TrainOptions::new(cfg), &ctl, &mut |_| {}).unwrap();
+
+    let card: glimmer_core::registry::ModelCard =
+        serde_json::from_str(&std::fs::read_to_string(ws.models_dir().join("two-stage/card.json")).unwrap()).unwrap();
+    let runs: Vec<&str> = card.stages.iter().map(|s| s.run_id.as_str()).collect();
+    assert_eq!(runs, [first.run_id.as_str(), second.run_id.as_str()], "{card:#?}");
+    assert_eq!(card.stages[0].initialised_from, None, "stage 1 starts from random weights");
+    // The card describes the exported (best) checkpoint of each stage.
+    let best_step = |run: &glimmer_training::RunSummary| run.best_step.unwrap();
+    assert_eq!(card.stages[0].steps, best_step(&first));
+    assert_eq!(card.stages[1].steps, best_step(&second));
+
+    // Checkpoints carry the same lineage, so a third stage would inherit both.
+    let ckpt: Vec<glimmer_core::registry::StageRecord> =
+        serde_json::from_str(&std::fs::read_to_string(second.best_checkpoint.unwrap().join("lineage.json")).unwrap())
+            .unwrap();
+    assert_eq!(ckpt.len(), 2);
+    std::fs::remove_dir_all(&ws.root).ok();
+}

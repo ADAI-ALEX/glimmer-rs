@@ -4,5 +4,5 @@ key down
 key down
 key enter
 train-idle
-wait 4000
+wait 15000
 quit

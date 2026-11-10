@@ -7,7 +7,7 @@ use burn::module::{Module, ModuleVisitor, Param};
 use burn::tensor::{Device, Int, Tensor, TensorData};
 use glimmer_core::config::{FfnKind, InitStrategy, ModelConfig, NormKind};
 use glimmer_models::loss::{log_softmax_stable, weighted_nll_sum};
-use glimmer_models::store::{load_weights, save_weights};
+use glimmer_models::store::{self, load_weights, save_weights};
 use glimmer_models::transformer::Transformer;
 
 fn micro() -> ModelConfig {
@@ -191,6 +191,26 @@ fn gradients_flow_to_every_parameter() {
 }
 
 #[test]
+fn dropout_is_active_in_training_and_disabled_for_evaluation() {
+    // Validation and hyperparameter selection must not be penalised by dropout noise.
+    let device = cpu().autodiff();
+    let x = tokens(&[vec![1, 5, 9, 13, 17, 21, 25, 29]], &device);
+    let noisy = Transformer::init(&ModelConfig { dropout: 0.5, ..micro() }, &device, 23);
+    let clean = Transformer::init(&ModelConfig { dropout: 0.0, ..micro() }, &device, 23);
+
+    let train_a = to_vec(noisy.forward(x.clone()));
+    let train_b = to_vec(noisy.forward(x.clone()));
+    assert!(max_diff(&train_a, &train_b) > 1e-3, "dropout should perturb training forward passes");
+
+    let x_inner = tokens(&[vec![1, 5, 9, 13, 17, 21, 25, 29]], &cpu());
+    let eval_a = to_vec(noisy.valid().forward(x_inner.clone()));
+    let eval_b = to_vec(noisy.valid().forward(x_inner.clone()));
+    let eval_clean = to_vec(clean.valid().forward(x_inner));
+    assert_eq!(eval_a, eval_b, "evaluation must be deterministic");
+    assert!(max_diff(&eval_a, &eval_clean) < 1e-6, "evaluation must ignore dropout");
+}
+
+#[test]
 fn autodiff_gradients_match_finite_differences() {
     // Central differences on the token-embedding matrix of a micro model.
     let device = cpu().autodiff();
@@ -239,14 +259,17 @@ fn save_and_load_roundtrip_preserves_outputs() {
     let dir = std::env::temp_dir().join(format!("glimmer-store-{}", std::process::id()));
     let path = dir.join("model.bpk");
     save_weights(&model, &path).unwrap();
+    // A different architecture must be rejected, not partially loaded.
+    let other = ModelConfig { d_model: 32, n_heads: 4, ..cfg.clone() };
+    assert!(load_weights(&other, &device, &path).is_err());
     let loaded = load_weights(&cfg, &device, &path).unwrap();
+    // Loading is complete when `load_weights` returns: the file can go (checkpoint pruning does
+    // exactly this) without breaking the loaded model.
+    std::fs::remove_dir_all(&dir).unwrap();
     let x = tokens(&[vec![1, 2, 3, 4, 5]], &device);
     assert_eq!(to_vec(model.forward(x.clone())), to_vec(loaded.forward(x)));
     assert_eq!(model.embed.weight.id, loaded.embed.weight.id, "parameter ids must persist");
-    // A different architecture must be rejected, not partially loaded.
-    let other = ModelConfig { d_model: 32, n_heads: 4, ..cfg };
-    assert!(load_weights(&other, &device, &path).is_err());
-    std::fs::remove_dir_all(dir).ok();
+    assert_eq!(store::parameter_checksum(&model), store::parameter_checksum(&loaded));
 }
 
 #[test]

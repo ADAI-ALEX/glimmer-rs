@@ -4,7 +4,6 @@ use crate::{Measurement, measure};
 use anyhow::Result;
 use glimmer_core::{ModelConfig, Rng};
 use glimmer_inference::{Engine, SamplingConfig};
-use glimmer_models::burn::module::Module;
 use glimmer_models::burn::optim::GradientsParams;
 use glimmer_models::burn::tensor::module::attention;
 use glimmer_models::burn::tensor::ops::AttentionModuleOptions;
@@ -97,7 +96,7 @@ pub fn train_step(c: &Ctx, cfg: &ModelConfig, batch: usize) -> Measurement {
     let tokens = (batch * t) as f64;
     let mut m = c.m(
         "train step (fwd+bwd+AdamW)",
-        format!("{} {}M params B{batch} T{t}", cfg.name, cfg.param_count() as f64 / 1e6),
+        format!("{} {:.1}M params B{batch} T{t}", cfg.name, cfg.param_count() as f64 / 1e6),
         stats,
         Some((tokens, "tok")),
     );
@@ -181,7 +180,8 @@ pub fn checkpoint_io(c: &Ctx, cfg: &ModelConfig, dir: &Path) -> Result<(Measurem
     let save = measure(1, 3, || store::save_weights(&model, &path).unwrap());
     let load = measure(1, 3, || {
         let m = store::load_weights(cfg, d, &path).unwrap();
-        std::hint::black_box(m.num_params());
+        // Read every parameter back so the timing covers file → host → device in full.
+        std::hint::black_box(store::parameter_checksum(&m));
     });
     let bytes = std::fs::metadata(&path).map(|m| m.len()).unwrap_or(0) as f64 / 1e6;
     std::fs::remove_file(&path).ok();

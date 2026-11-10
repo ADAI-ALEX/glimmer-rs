@@ -176,7 +176,7 @@ impl App {
                 lines: vec![ChatLine {
                     role: Some(Role::Assistant),
                     text: WELCOME.into(),
-                    meta: Some("welcome".into()),
+                    meta: Some("scripted greeting".into()),
                 }],
                 input: String::new(),
                 focus_input: true,
@@ -824,7 +824,7 @@ impl App {
             ),
             "clear" => {
                 let _ = self.chat.worker.tx.send(ChatCmd::Clear);
-                self.chat.lines = vec![ChatLine { role: Some(Role::Assistant), text: WELCOME.into(), meta: Some("welcome".into()) }];
+                self.chat.lines = vec![ChatLine { role: Some(Role::Assistant), text: WELCOME.into(), meta: Some("scripted greeting".into()) }];
             }
             "save" => {
                 let n = arg.map(str::to_string).unwrap_or_else(|| format!("chat-{}", glimmer_core::time::compact_stamp(glimmer_core::time::now_unix())));

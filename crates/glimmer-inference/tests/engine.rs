@@ -75,7 +75,7 @@ fn cancellation_stops_generation() {
             pieces < 2
         })
         .unwrap();
-    if !out.tokens.is_empty() && out.stop != StopReason::EndOfTurn {
+    if !out.tokens.is_empty() && !matches!(out.stop, StopReason::EndOfTurn | StopReason::SpecialToken) {
         assert_eq!(out.stop, StopReason::Cancelled);
     }
 }

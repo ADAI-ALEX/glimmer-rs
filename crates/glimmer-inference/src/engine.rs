@@ -14,8 +14,11 @@ use std::time::Instant;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum StopReason {
-    /// The model produced an end-of-turn token (`<|end|>` or another role tag).
+    /// The model closed its turn with `<|end|>`, as fine-tuning teaches it to.
     EndOfTurn,
+    /// The model produced another special token (`<|endoftext|>` or a role tag). Generation stops
+    /// because nothing sensible follows, but the turn was not closed properly.
+    SpecialToken,
     MaxTokens,
     ContextFull,
     Cancelled,
@@ -70,8 +73,11 @@ pub fn generate_once(
     let mut out = Vec::new();
     let stop = loop {
         let next = sample(&logits, &out, cfg, &mut rng, &BANNED);
-        if matches!(next, END | ENDOFTEXT | USER | SYSTEM | ASSISTANT) {
+        if next == END {
             break StopReason::EndOfTurn;
+        }
+        if matches!(next, ENDOFTEXT | USER | SYSTEM | ASSISTANT) {
+            break StopReason::SpecialToken;
         }
         out.push(next);
         if out.len() >= cfg.max_new_tokens {
@@ -195,8 +201,11 @@ impl Engine {
         let stop = loop {
             let recent: Vec<u32> = generated.clone();
             let next = sample(&logits, &recent, cfg, &mut rng, &BANNED);
-            if matches!(next, END | ENDOFTEXT | USER | SYSTEM | ASSISTANT) {
+            if next == END {
                 break StopReason::EndOfTurn;
+            }
+            if matches!(next, ENDOFTEXT | USER | SYSTEM | ASSISTANT) {
+                break StopReason::SpecialToken;
             }
             generated.push(next);
             let piece = decoder.push(&self.tokenizer, next);

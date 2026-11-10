@@ -1,0 +1,6 @@
+# Open the evaluation screen on STEVIE's report (assets/screenshots/evaluation.png).
+wait 2500
+key down
+key down
+wait 9000
+quit

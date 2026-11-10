@@ -63,6 +63,16 @@ pub fn topical_overlap(prompt: &str, response: &str) -> bool {
     !p.is_disjoint(&r)
 }
 
+/// Whether `response` contains any expected word or phrase as whole words (case-insensitive), so
+/// "Tom" does not match "bottom" and "sit" does not match "visit".
+pub fn mentions_any(response: &str, expected: &[String]) -> bool {
+    let padded = format!(" {} ", words(response).join(" "));
+    expected.iter().any(|e| {
+        let want = words(e).join(" ");
+        !want.is_empty() && padded.contains(&format!(" {want} "))
+    })
+}
+
 /// Per-response measurements.
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq)]
 pub struct ResponseMetrics {
@@ -90,7 +100,6 @@ pub fn measure(
     tps: f64,
 ) -> ResponseMetrics {
     let style = lexicon::analyse(response);
-    let lower = response.to_lowercase();
     ResponseMetrics {
         words: words(response).len(),
         tokens,
@@ -102,7 +111,7 @@ pub fn measure(
         has_australian_marker: style.has_australian_marker(),
         us_spellings: style.us_spellings,
         topical: topical_overlap(prompt, response),
-        continuity: (!expect_any.is_empty()).then(|| expect_any.iter().any(|w| lower.contains(&w.to_lowercase()))),
+        continuity: (!expect_any.is_empty()).then(|| mentions_any(response, expect_any)),
         tokens_per_sec: tps,
     }
 }
@@ -126,5 +135,9 @@ mod tests {
         let m = measure("What's my name?", "It's Tom, mate!", 5, true, &["Tom".into()], 10.0);
         assert_eq!(m.continuity, Some(true));
         assert!(m.has_australian_marker);
+        let m = measure("What's my name?", "Check the bottom drawer.", 5, true, &["Tom".into()], 10.0);
+        assert_eq!(m.continuity, Some(false), "substrings must not count");
+        assert!(mentions_any("Head down the coast road.", &["coast road".into()]));
+        assert!(!mentions_any("Please visit soon", &["sit".into()]));
     }
 }

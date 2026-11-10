@@ -87,7 +87,7 @@ fn backend_badge(app: &App) -> Line<'static> {
             match metal.map(|m| &m.result) {
                 Some(Ok((adapter, _, _))) => Line::from(vec![
                     Span::styled("● ", Style::new().fg(GUM)),
-                    Span::styled(format!("Metal · {adapter} "), theme::muted()),
+                    Span::styled(format!("Metal verified · {adapter} "), theme::muted()),
                 ]),
                 _ => Line::from(vec![
                     Span::styled("● ", Style::new().fg(OCHRE)),
@@ -852,7 +852,12 @@ fn experiments(f: &mut Frame, area: Rect, app: &App) {
         app.studies
             .iter()
             .map(|(n, r)| {
-                let best = r.lines().find(|l| l.starts_with("**Best:**")).unwrap_or("").replace("**Best:**", "best:");
+                let best = r
+                    .lines()
+                    .find(|l| l.starts_with("**Best:**"))
+                    .unwrap_or("")
+                    .replace("**Best:**", "best:")
+                    .replace('`', "");
                 Line::from(vec![Span::styled(format!("{n} "), bold()), Span::styled(best, theme::muted())])
             })
             .collect()
@@ -1158,7 +1163,7 @@ fn settings(f: &mut Frame, area: Rect, app: &App) {
         &mut st,
     );
     let lines = vec![
-        kv("workspace", app.ws.root.display().to_string()),
+        kv("workspace", glimmer_core::workspace::home_relative(&app.ws.root)),
         kv("glimmer", glimmer_core::VERSION),
         kv("build", format!("{} · {}", glimmer_core::BUILD_PROFILE, glimmer_core::RUSTC_VERSION)),
     ];

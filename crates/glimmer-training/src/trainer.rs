@@ -174,6 +174,39 @@ fn read_lineage(dir: &Path) -> Vec<StageRecord> {
     Vec::new()
 }
 
+/// The stage a checkpoint represents, rebuilt from its own metadata (`meta.json`, `state.json`,
+/// `training.toml`). `None` for directories that are not checkpoints, such as exported models,
+/// whose `card.json` already lists every stage.
+fn checkpoint_stage_record(dir: &Path) -> Option<StageRecord> {
+    let (state, meta) = checkpoint::load_state(dir).ok()?;
+    let training = TrainingConfig::load(dir.join("training.toml")).ok()?;
+    Some(StageRecord {
+        stage: meta.stage.as_str().to_string(),
+        run_id: meta.run_id,
+        dataset: training.data.dataset.clone(),
+        steps: state.step,
+        tokens: state.tokens_seen,
+        final_train_loss: state.train_loss_ema.value,
+        best_val_loss: state.best_val_loss,
+        backend: meta.backend,
+        wall_secs: state.wall_secs,
+        initialised_from: training.init.from_checkpoint.clone(),
+    })
+}
+
+/// Every stage that produced the weights in `dir`, oldest first, *including* the stage that wrote
+/// `dir`. Checkpoints written before lineage files included their own stage are completed from
+/// the checkpoint's metadata.
+pub fn lineage_of(dir: &Path) -> Vec<StageRecord> {
+    let mut stages = read_lineage(dir);
+    if let Some(own) = checkpoint_stage_record(dir)
+        && !stages.iter().any(|s| s.run_id == own.run_id)
+    {
+        stages.push(own);
+    }
+    stages
+}
+
 struct RunCtx<'a> {
     ws: &'a Workspace,
     cfg: &'a TrainingConfig,
@@ -222,7 +255,10 @@ impl RunCtx<'_> {
                 tokenizer: self.tokenizer_path,
             },
         )?;
-        std::fs::write(dir.join("lineage.json"), serde_json::to_string_pretty(&self.lineage)?)?;
+        // The full lineage of these weights: earlier stages plus this run up to this step.
+        let mut lineage = self.lineage.clone();
+        lineage.push(self.stage_record(state));
+        std::fs::write(dir.join("lineage.json"), serde_json::to_string_pretty(&lineage)?)?;
         Ok(dir)
     }
 
@@ -247,8 +283,13 @@ impl RunCtx<'_> {
         for f in ["model.bpk", "model.json", "tokenizer.json"] {
             std::fs::copy(from.join(f), out.join(f)).with_context(|| format!("exporting {f}"))?;
         }
-        let mut stages = self.lineage.clone();
-        stages.push(self.stage_record(state));
+        // Describe the weights being exported: the lineage saved with that checkpoint ends with
+        // this run *as of that checkpoint* (e.g. the best step, not the last step trained).
+        let mut stages = read_lineage(from);
+        if stages.last().is_none_or(|s| s.run_id != self.run_id) {
+            stages = self.lineage.clone();
+            stages.push(self.stage_record(state));
+        }
         let hw = glimmer_core::hardware::HardwareReport::detect(false);
         let hardware = format!(
             "{} · {:.0} GiB{}",
@@ -426,8 +467,10 @@ pub fn train(
     };
 
     let lineage = match (&opts.resume, &init_dir) {
-        (Some(dir), _) => read_lineage(dir),
-        (None, Some(dir)) => read_lineage(dir),
+        // Resuming continues this run: keep only the stages that came before it.
+        (Some(dir), _) => lineage_of(dir).into_iter().filter(|s| s.run_id != run_id).collect(),
+        // Starting from another run's weights: inherit its whole lineage, its own stage included.
+        (None, Some(dir)) => lineage_of(dir),
         _ => Vec::new(),
     };
     let ctx = RunCtx {
@@ -620,6 +663,11 @@ pub fn train(
         }
         record(&mut metrics, emit, MetricRecord::Step(sm))?;
         if let Data::Sft { train, .. } = &data {
+            let previous_epoch = state.sft_cursor.as_ref().map_or(0, |c| c.epoch);
+            if train.epoch() > previous_epoch {
+                let msg = format!("completed epoch {} of the fine-tuning data", train.epoch());
+                record(&mut metrics, emit, event(state.step, EventKind::Info, msg))?;
+            }
             state.sft_cursor = Some(train.cursor().clone());
         }
 

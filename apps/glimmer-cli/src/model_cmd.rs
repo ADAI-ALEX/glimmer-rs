@@ -7,7 +7,7 @@ use glimmer_core::config::ModelConfig;
 use glimmer_core::registry::{list_models, resolve_model};
 use glimmer_core::time::{format_count, format_duration, iso8601};
 use glimmer_core::{BackendKind, Workspace};
-use glimmer_evaluation::{EvalOptions, EvalReport, ModelSource, comparison_markdown, evaluate_model};
+use glimmer_evaluation::{EvalOptions, EvalReport, ModelSource, comparison_markdown, corpus_reference, evaluate_model};
 use glimmer_inference::{ChatSession, Engine, SamplingConfig};
 use glimmer_optimisation::{StudyConfig, StudyEvent, run_study};
 use glimmer_tokenizer::chat::{Message, render_prompt};
@@ -297,10 +297,12 @@ pub fn evaluate(ws: &Workspace, a: EvalArgs) -> Result<()> {
             pretrain_dataset: pre.join("test.bin").is_file().then(|| pre.clone()),
             pretrain_batches: 24,
         };
-        let r = evaluate_model(src, &opts, &device, &mut |p| {
+        let mut r = evaluate_model(src, &opts, &device, &mut |p| {
             print!("\r  {} {:<40}", dim("generating"), p);
             let _ = std::io::stdout().flush();
         })?;
+        // Reports are meant to be shared: record the model location relative to the workspace.
+        r.source = ws.relative(&r.source);
         println!();
         kv(
             "conversation test",
@@ -321,7 +323,22 @@ pub fn evaluate(ws: &Workspace, a: EvalArgs) -> Result<()> {
     let out = ws.runs_dir().join("eval");
     std::fs::create_dir_all(&out)?;
     std::fs::write(out.join(format!("{}.json", a.name)), serde_json::to_string_pretty(&reports)?)?;
-    std::fs::write(out.join(format!("{}.md", a.name)), comparison_markdown(&reports, ws))?;
+    let reference = if sft.join("test.sft").is_file() { corpus_reference(ws, &sft).ok() } else { None };
+    if let Some(c) = &reference {
+        println!();
+        kv(
+            "reference replies",
+            format!(
+                "aussie markers in {:.0}% of {} held-out corpus replies",
+                c.style.australian_marker_rate * 100.0,
+                c.style.replies
+            ),
+        );
+        for r in &reports {
+            kv(&format!("copies training ({})", r.label), format!("{:.0}% of responses", c.copied_rate(r) * 100.0));
+        }
+    }
+    std::fs::write(out.join(format!("{}.md", a.name)), comparison_markdown(&reports, reference.as_ref(), ws))?;
     println!("\n  {} {}", dim("report →"), ws.relative(out.join(format!("{}.md", a.name))));
     Ok(())
 }

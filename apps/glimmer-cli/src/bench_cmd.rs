@@ -220,6 +220,8 @@ pub struct DoctorArgs {
 }
 
 pub fn doctor(ws: &Workspace, args: DoctorArgs) -> Result<()> {
+    // Sample GPU activity before the self-tests below, which would otherwise dominate it.
+    let gpu_before = glimmer_core::gpu::sample();
     let hw = HardwareReport::detect(true);
     let metal = backend::select(BackendKind::Metal);
     let cpu = backend::select(BackendKind::Cpu);
@@ -286,10 +288,19 @@ pub fn doctor(ws: &Workspace, args: DoctorArgs) -> Result<()> {
         Err(e) => kv("cpu", format!("{} {e}", style::err("✗"))),
     }
     let selected = backend::select(BackendKind::Auto)?;
-    kv("auto selects", bold(&selected.label()));
+    kv("auto · training", bold(&selected.label()));
     if let Some(r) = &selected.fallback_reason {
         kv("fallback reason", style::warn(r));
     }
+    let inference = backend::select_for_inference(BackendKind::Auto)?;
+    kv(
+        "auto · inference",
+        format!(
+            "{} {}",
+            bold(&inference.label()),
+            dim("(batch-1 decoding is faster on the CPU; see docs/performance.md)")
+        ),
+    );
 
     heading("recommendation");
     let (preset, why) = hw.recommend_preset();
@@ -305,7 +316,7 @@ pub fn doctor(ws: &Workspace, args: DoctorArgs) -> Result<()> {
     println!("  {}", dim(&why));
 
     heading("workspace");
-    kv("root", ws.root.display());
+    kv("root", glimmer_core::workspace::home_relative(&ws.root));
     let datasets = glimmer_data::DatasetManifest::list(ws.datasets_dir());
     kv(
         "datasets",
@@ -324,8 +335,8 @@ pub fn doctor(ws: &Workspace, args: DoctorArgs) -> Result<()> {
             models.iter().map(|m| m.name.clone()).collect::<Vec<_>>().join(", ")
         },
     );
-    if let Some(s) = glimmer_core::gpu::sample() {
-        kv("gpu utilisation now", format!("{:.0}%", s.device_utilization.unwrap_or(0.0)));
+    if let Some(s) = gpu_before {
+        kv("gpu utilisation", format!("{:.0}% (sampled before the self-tests)", s.device_utilization.unwrap_or(0.0)));
     }
     Ok(())
 }
