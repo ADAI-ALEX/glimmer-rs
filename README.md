@@ -70,7 +70,7 @@ modern foundation models. It is thousands of times smaller, and it makes confide
   supervised fine-tuning with assistant-only loss masking on packed, segment-isolated conversations.
 * **Serious training infrastructure.** AdamW/Lion/SGD, decay-free norm gains, global-norm clipping,
   gradient accumulation, warmup + cosine/linear/WSD schedules, validation, best-checkpoint
-  selection, early stopping, and **bit-exact resumption** (optimiser, schedule, RNG, data cursor).
+  selection, early stopping, and **exact resumption** (optimiser, schedule, RNG and data cursor restored; verified against an uninterrupted run).
 * **Automatic hyperparameter optimisation.** Random search, TPE (Bayesian) and successive halving
   with exact continuation, fully tracked and reproducible.
 * **A training monitor** that detects spikes, excessive clipping, overfitting and plateaus and
@@ -84,9 +84,10 @@ modern foundation models. It is thousands of times smaller, and it makes confide
   English style markers and multi-turn continuity probes, with every generated response stored.
 * **Reproducible data.** Declarative source manifests with licences and provenance, checksummed
   downloads, deduplication, leak-free hash-based splits and dataset manifests.
-* **Tested.** 117 tests: tokenizer round-trips, causal masking, packing isolation, KV-cache
+* **Tested.** 118 tests: tokenizer round-trips, causal masking, packing isolation, KV-cache
   equivalence, finite-difference gradient checks, Metal-vs-CPU agreement, training that provably
-  learns, exact resumption, successive-halving continuation, and every TUI screen rendering.
+  learns, exact resumption, successive-halving continuation, every TUI screen rendering, and an
+  end-to-end run of the `glimmer` binary from raw conversations to an exported, chatting model.
 
 ## Architecture
 
@@ -257,7 +258,7 @@ press Enter; `/help` lists commands (`/clear /save /load /model /stats /temperat
 ## Development and contributing
 
 ```bash
-cargo test --workspace --release          # 117 tests (Metal comparison runs when a GPU is present)
+cargo test --workspace --release          # 118 tests (Metal comparison runs when a GPU is present)
 cargo clippy --workspace --all-targets -- -D warnings
 cargo fmt --all
 glimmer bench --quick                     # kernel, model, inference and data benchmarks
