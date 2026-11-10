@@ -13,6 +13,9 @@ env:
   CARGO_TERM_COLOR: always
   # Hosted runners expose no reliable GPU; the Metal-vs-CPU agreement test runs locally.
   GLIMMER_SKIP_METAL_TESTS: "1"
+  # Tests run on the CPU backend; make Burn's default device (used when restoring optimiser
+  # state) the CPU too, so no test tries to open a GPU.
+  BURN_DEVICE: flex
 
 jobs:
   fmt:

@@ -53,6 +53,12 @@ the architecture and the tokenizer. Writes are atomic (temporary directory + ren
 stopping at step 15 and resuming from the checkpoint: the per-step losses after resumption match the
 uninterrupted run to 1e-4. Resetting any of optimiser state, schedule position or RNG would fail it.
 
+Burn restores optimiser state on its *default* device (it takes no device argument), and the
+default is wgpu whenever GPU support is compiled in. On platforms other than macOS, where GLIMMER
+always trains on the CPU, the `glimmer` binary therefore sets `BURN_DEVICE=flex` at start-up
+(unless you set it yourself); otherwise resuming would try to open a GPU that may not exist. This
+was found by CI on a GPU-less Linux runner.
+
 ```bash
 glimmer train --resume runs/stevie-pretrain-20261109-231823      # latest checkpoint of a run
 glimmer train --resume runs/<run>/checkpoints/step-0008000       # a specific checkpoint

@@ -87,6 +87,14 @@ enum RunsCmd {
 }
 
 fn main() -> Result<()> {
+    // Burn materialises some state (e.g. resumed optimiser moments) on its *default* device, which
+    // is wgpu whenever the GPU feature is compiled in. GLIMMER accelerates only with Metal, so on
+    // other platforms the default must be the CPU backend, or resuming a run would try to open a
+    // GPU that may not exist. An explicit BURN_DEVICE is respected.
+    if !cfg!(target_os = "macos") && std::env::var_os("BURN_DEVICE").is_none() {
+        // SAFETY: this is the first statement of `main`; no other threads exist yet.
+        unsafe { std::env::set_var("BURN_DEVICE", "flex") };
+    }
     let cli = Cli::parse();
     let ws = Workspace::discover()?;
     match cli.command {
