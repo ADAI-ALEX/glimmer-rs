@@ -74,7 +74,7 @@ modern foundation models. It is thousands of times smaller, and it makes confide
   (with Apple AMX) that is never silently substituted.
 * **A modern small transformer.** Pre-norm RMSNorm, rotary position embeddings, fused causal
   attention, SwiGLU, tied embeddings, host-seeded initialisation identical across backends.
-* **Two-stage training.** Causal-LM pretraining on 137M tokens of openly licensed text, then
+* **Two-stage training.** Causal-LM pretraining on a 137M-token corpus of openly licensed text (131M tokens seen), then
   supervised fine-tuning with assistant-only loss masking on packed, segment-isolated conversations.
 * **Serious training infrastructure.** AdamW/Lion/SGD, decay-free norm gains, global-norm clipping,
   gradient accumulation, warmup + cosine/linear/WSD schedules, validation, best-checkpoint
@@ -227,7 +227,7 @@ export PATH="$PWD/target/release:$PATH"
 glimmer doctor
 ```
 
-The first Metal run compiles and autotunes GPU kernels (around 20 seconds); later steps reuse them.
+The first Metal run compiles and autotunes GPU kernels (20–30 seconds); later steps reuse them.
 
 ## Datasets and licences
 
