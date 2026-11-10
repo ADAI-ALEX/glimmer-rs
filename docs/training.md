@@ -101,7 +101,50 @@ warmup steps) were run with the same model and data (`runs/lrprobe-*`):
 Loss improves up to 1e-3 and gets worse by 2e-3, so 1e-3 was chosen as the peak, with cosine decay
 providing the low-LR phase that short probes cannot evaluate.
 
-<!-- PRETRAIN_RESULTS -->
+### Pretraining results
+
+Run `stevie-pretrain-20261109-231823`, on an Apple M1 Pro (16 GB) GPU through Metal:
+
+| | |
+|---|---|
+| steps | 16,000 (completed, no skipped steps) |
+| tokens seen | 131,072,000 |
+| wall time | 2 h 51 min, including 32 validation passes and sampling |
+| throughput | 13.5k tokens/s during training steps (≈ 608 ms per 8,192-token step); 12.7k tokens/s overall |
+| final training loss | 2.359 |
+| best validation loss | **2.397 (perplexity 11.0)**, at the final step |
+
+![Pretraining loss](../assets/plots/pretrain-loss.svg)
+
+| step | tokens | validation loss | perplexity |
+|---|---|---|---|
+| 500 | 4.1M | 4.064 | 58.2 |
+| 1,000 | 8.2M | 3.575 | 35.7 |
+| 2,000 | 16.4M | 3.151 | 23.4 |
+| 4,000 | 32.8M | 2.839 | 17.1 |
+| 8,000 | 65.5M | 2.611 | 13.6 |
+| 12,000 | 98.3M | 2.464 | 11.8 |
+| 16,000 | 131.1M | 2.397 | 11.0 |
+
+Validation loss was still falling at the last step and tracked training loss closely the whole way,
+so the model is under-trained rather than overfitted: more tokens (or a larger model) would help.
+For scale, the random-initialisation baseline in [evaluation.md](evaluation.md) is ln(8192) ≈ 9.01.
+
+**What the samples show.** The trainer completes the same three prompts at every evaluation
+(temperature 0.7, top-k 40, top-p 0.9, repetition penalty 1.15, fixed seed). Unedited excerpts,
+cut at a sentence boundary:
+
+| step | `Once upon a time` | `In Australia,` |
+|---|---|---|
+| 500 | ", there was a nice girl named Lily. Lily loved to sing all day on her favorite toy box. One day, Lily and Max went to the park to make. They saw many red clothes." | " in the Udlak, and the Calling) was released by a new place for the 2018 Summer Paralymp." |
+| 2,000 | ", there was a big bear. The bear had many friends and the animals liked to play with them. One day, they found a little bird in the woods." | " it was held as the Soundland in 1974." |
+| 8,000 | ", there was a big bear. The bear lived in the woods with his friends. They liked to play and have fun together. One day, they decided to build a castle." | " it was also one of the most important events in Australia. The event was the first time that the Australian women's national ice hockey team had won the championship at the World Cup." |
+| 16,000 | ", there was a boy named Tim. He had a toy bear named Mr. Bear. They loved to play together every day. One day, they found a big, hard rock in their room." | " he was named to the UK's first Australian-based man, and he was given a job as a brig." |
+
+Grammar, story structure and the encyclopaedic register are learned early. Facts are not: at step
+16,000 the model still writes "The kangaroo is a small and friendly duck." A 14M-parameter model
+trained on 131M tokens learns how English *sounds* far better than what is true, and STEVIE
+inherits that limitation.
 
 ## Stage 2: conversational fine-tuning
 
@@ -113,12 +156,45 @@ Config: [`configs/training/stevie-sft.toml`](../configs/training/stevie-sft.toml
   System prompts, user turns, role tags and padding contribute nothing. STEVIE learns to answer,
   not to imitate users, and learns when to stop.
 * **System prompt**: half the examples include "You are Stevie, a friendly Australian AI mate."
-* **Regularisation**: the corpus is small (~46k tokens per epoch), so validation runs every 10
-  steps, early stopping has a patience of 8 evaluations, and the best checkpoint is exported.
+* **Short, closely watched training**: the corpus is small (~46k tokens, ~90 packed rows, ~11
+  optimiser steps per epoch at batch 8), and a 14M-parameter model memorises it within a few
+  epochs: in the first hyperparameter study, validation loss bottomed out after ~2 epochs and then
+  climbed from 3.92 to 5.32 while training loss fell to 0.017. The schedule is therefore 54 steps
+  (~4.8 epochs, 5 warmup steps, cosine decay), validation runs every 3 steps, early stopping has a
+  patience of 6 evaluations, and the best checkpoint is exported. The trainer logs each completed
+  epoch so this is visible in the metrics and the TUI.
 * **Hyperparameters**: learning rate, weight decay and dropout come from a TPE + successive-halving
   study (see [optimisation.md](optimisation.md)).
 
-<!-- SFT_RESULTS -->
+### Fine-tuning results
+
+Run `stevie-sft-20261110-022514`, launched from the TUI's Training Lab (that is the run in
+[the training screenshots](../assets/screenshots/training.png)). It starts from the best
+pretraining checkpoint and uses the winning hyperparameters from the study: peak lr 3.08e-4, 5
+warmup steps, cosine decay to 3.08e-5, weight decay 0.106, dropout 0.02, 8 packed 512-token rows
+per step.
+
+| step | 3 | 6 | 12 | 18 | 24 | **33** | 39 | 45 | 51 |
+|---|---|---|---|---|---|---|---|---|---|
+| epochs | 0.25 | 0.5 | 1.0 | 1.5 | 2.1 | **2.9** | 3.4 | 3.9 | 4.4 |
+| validation loss | 4.499 | 4.257 | 4.043 | 3.961 | 3.910 | **3.898** | 3.909 | 3.928 | 3.930 |
+
+* Best validation loss **3.898 at step 33** (≈ 2.9 epochs). From step 39 the monitor reported
+  overfitting (validation rising while training loss fell). Early stopping ended the run at
+  step 51 after 6 evaluations without improvement, and the step-33 checkpoint was exported as
+  `models/stevie`.
+* 51 steps, 209k tokens, **66 seconds** of wall time. About 46 s of that was one-off Metal kernel
+  compilation and autotuning: 27 s for the first training step (packed-attention shapes) and ~19 s
+  for the first round of live samples (decoding shapes). The steps themselves ran at ~14k
+  tokens/s, 0.29 s each.
+* On the held-out *test* conversations, fine-tuning lowered the loss on STEVIE's replies from 4.883
+  (pretrained model) to 3.944. General-text test loss rose from 2.367 to 2.571, a modest amount of
+  forgetting. See [evaluation.md](evaluation.md).
+
+Fine-tuning has to stop early because the corpus is so small. An ablation that trained the same
+configuration for 200 steps (~18 epochs, [`configs/ablations/stevie-sft-overtrained.toml`](../configs/ablations/stevie-sft-overtrained.toml))
+drove training loss to 0.21 and validation loss up to 4.79, and its replies started quoting the
+training conversations verbatim (details in [evaluation.md](evaluation.md)).
 
 ## Reproducing STEVIE
 

@@ -1,39 +1,46 @@
 # Hyperparameter search for STEVIE's conversational fine-tuning.
 #
-# TPE proposes configurations one at a time (learning from earlier trials); successive halving
-# trains 18 candidates for 22 steps, promotes the best third to 66 steps, and the best third of
-# those to the full 200-step budget. Every trial starts from the same pretrained checkpoint and
-# is scored on the validation split; the test split stays untouched for final evaluation.
+# The fine-tuning corpus is small: one epoch is ~90 packed 512-token rows, about 11 optimiser
+# steps at batch 8. The first study (stevie-sft-search-v1.toml) showed validation loss bottoming
+# out after ~2 epochs, followed by memorisation. This study therefore spends its budget inside that
+# window: a 54-step (~4.8 epoch) schedule with a short warmup and cosine decay, evaluated every 3
+# steps (~a quarter epoch).
+#
+# TPE proposes configurations one at a time, learning from earlier trials. Successive halving
+# (eta 2) trains 24 candidates for 13 steps (~1.2 epochs), promotes the best half to 27 steps
+# (~2.4 epochs) and the best half of those to the full 54. Every trial starts from the same
+# pretrained checkpoint and is scored on the validation split; the test split and the held-out
+# evaluation prompts stay untouched for the final evaluation.
 name = "stevie-sft-search"
-description = "Learning rate, weight decay and dropout for STEVIE's supervised fine-tuning."
+description = "Learning rate, weight decay and dropout for STEVIE's supervised fine-tuning (redesigned around a ~5-epoch budget)."
 base_config = "configs/training/stevie-sft.toml"
 sampler = "tpe"
-trials = 18
-steps = 200
-seed = 2026
-# Score trials by their best validation loss (evaluated every 11 steps), matching the final run,
-# which keeps its best checkpoint with early stopping.
+trials = 24
+steps = 54
+seed = 2027
+# Score trials by their best validation loss, matching the final run, which keeps its best
+# checkpoint with early stopping.
 objective = "best"
-eval_every = 11
+eval_every = 3
 
 [successive_halving]
-eta = 3
-min_steps = 22
+eta = 2
+min_steps = 13
 
 [[space]]
 kind = "log_uniform"
 name = "lr"
-low = 3e-5
-high = 2e-3
+low = 1e-4
+high = 3e-3
 
 [[space]]
 kind = "uniform"
 name = "weight_decay"
 low = 0.0
-high = 0.2
+high = 0.3
 
 [[space]]
 kind = "uniform"
 name = "dropout"
 low = 0.0
-high = 0.25
+high = 0.3

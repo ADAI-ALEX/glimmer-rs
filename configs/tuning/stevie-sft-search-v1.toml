@@ -1,0 +1,40 @@
+# FIRST (superseded) hyperparameter search for STEVIE's fine-tuning — kept for the record.
+#
+# It ran on 2026-11-10 against configs/training/stevie-sft.toml as of commit b5be168 (warmup 20,
+# 200-step cosine schedule). Its finding: every configuration reached its best validation loss
+# within ~2 epochs (22 steps) and then memorised the 628 training conversations, so successive
+# halving had nothing to discriminate after rung 0. stevie-sft-search.toml is the redesigned study.
+# Re-running this file today uses the current base config, whose warmup is shorter.
+name = "stevie-sft-search-v1"
+description = "Learning rate, weight decay and dropout for STEVIE's supervised fine-tuning."
+base_config = "configs/training/stevie-sft.toml"
+sampler = "tpe"
+trials = 18
+steps = 200
+seed = 2026
+# Score trials by their best validation loss (evaluated every 11 steps), matching the final run,
+# which keeps its best checkpoint with early stopping.
+objective = "best"
+eval_every = 11
+
+[successive_halving]
+eta = 3
+min_steps = 22
+
+[[space]]
+kind = "log_uniform"
+name = "lr"
+low = 3e-5
+high = 2e-3
+
+[[space]]
+kind = "uniform"
+name = "weight_decay"
+low = 0.0
+high = 0.2
+
+[[space]]
+kind = "uniform"
+name = "dropout"
+low = 0.0
+high = 0.25

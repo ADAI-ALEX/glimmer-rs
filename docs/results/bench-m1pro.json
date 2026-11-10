@@ -1,0 +1,460 @@
+{
+ "hardware": {
+  "os_name": "Darwin",
+  "os_version": "macOS 26.6.2",
+  "kernel_version": "25.6.0",
+  "arch": "aarch64",
+  "cpu_brand": "Apple M1 Pro",
+  "logical_cores": 10,
+  "performance_cores": 8,
+  "efficiency_cores": 2,
+  "total_memory_bytes": 17179869184,
+  "available_memory_bytes": 13955235840,
+  "gpu": {
+   "name": "Apple M1 Pro",
+   "cores": 16,
+   "metal_support": null,
+   "unified_memory": true
+  },
+  "rustc_version": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+  "build_profile": "release"
+ },
+ "preset": {
+  "name": "tiny",
+  "vocab_size": 8192,
+  "d_model": 384,
+  "n_layers": 6,
+  "n_heads": 6,
+  "d_ff": 1024,
+  "context_length": 512,
+  "dropout": 0.0,
+  "norm": "rmsnorm",
+  "norm_eps": 1e-05,
+  "ffn": "swiglu",
+  "rope_theta": 10000.0,
+  "init": "scaled",
+  "init_std": 0.02,
+  "tie_embeddings": true
+ },
+ "measurements": [
+  {
+   "name": "matmul",
+   "backend": "Metal \u00b7 Apple M1 Pro",
+   "config": "512\u00d7512\u00b7512\u00d7512 f32",
+   "warmup": 5,
+   "iterations": 20,
+   "mean_ms": 0.6843060999999999,
+   "std_ms": 0.1307977668570454,
+   "min_ms": 0.476416,
+   "work": [
+    0.268435456,
+    "GFLOP"
+   ]
+  },
+  {
+   "name": "matmul",
+   "backend": "Metal \u00b7 Apple M1 Pro",
+   "config": "1024\u00d71024\u00b71024\u00d71024 f32",
+   "warmup": 5,
+   "iterations": 20,
+   "mean_ms": 1.1065542000000002,
+   "std_ms": 0.03402228207748561,
+   "min_ms": 1.015333,
+   "work": [
+    2.147483648,
+    "GFLOP"
+   ]
+  },
+  {
+   "name": "matmul",
+   "backend": "Metal \u00b7 Apple M1 Pro",
+   "config": "2048\u00d72048\u00b72048\u00d72048 f32",
+   "warmup": 5,
+   "iterations": 20,
+   "mean_ms": 6.040381249999999,
+   "std_ms": 0.04932964732174246,
+   "min_ms": 5.977417,
+   "work": [
+    17.179869184,
+    "GFLOP"
+   ]
+  },
+  {
+   "name": "attention (causal, fwd)",
+   "backend": "Metal \u00b7 Apple M1 Pro",
+   "config": "B8 H6 T256 Dh64",
+   "warmup": 5,
+   "iterations": 20,
+   "mean_ms": 1.7856062000000001,
+   "std_ms": 0.018258963367617544,
+   "min_ms": 1.7595,
+   "work": [
+    0.402653184,
+    "GFLOP"
+   ]
+  },
+  {
+   "name": "attention (causal, fwd)",
+   "backend": "Metal \u00b7 Apple M1 Pro",
+   "config": "B8 H6 T512 Dh64",
+   "warmup": 5,
+   "iterations": 20,
+   "mean_ms": 6.021073100000001,
+   "std_ms": 0.056288260200418466,
+   "min_ms": 5.950709,
+   "work": [
+    1.610612736,
+    "GFLOP"
+   ]
+  },
+  {
+   "name": "forward",
+   "backend": "Metal \u00b7 Apple M1 Pro",
+   "config": "tiny B8 T512",
+   "warmup": 5,
+   "iterations": 20,
+   "mean_ms": 85.52378115,
+   "std_ms": 0.09421804711798878,
+   "min_ms": 85.356583,
+   "work": [
+    4096.0,
+    "tok"
+   ]
+  },
+  {
+   "name": "train step (fwd+bwd+AdamW)",
+   "backend": "Metal \u00b7 Apple M1 Pro",
+   "config": "tiny 13.767552M params B8 T512",
+   "warmup": 3,
+   "iterations": 10,
+   "mean_ms": 305.3087583,
+   "std_ms": 0.5046306323145744,
+   "min_ms": 304.60225,
+   "work": [
+    4096.0,
+    "tok"
+   ]
+  },
+  {
+   "name": "upload batch (host\u2192device)",
+   "backend": "Metal \u00b7 Apple M1 Pro",
+   "config": "8\u00d7512 i64 (33 KB)",
+   "warmup": 5,
+   "iterations": 20,
+   "mean_ms": 0.41416270000000005,
+   "std_ms": 0.037418029277475326,
+   "min_ms": 0.34683400000000003,
+   "work": [
+    0.032768,
+    "MB"
+   ]
+  },
+  {
+   "name": "read logits (device\u2192host)",
+   "backend": "Metal \u00b7 Apple M1 Pro",
+   "config": "1\u00d78192 f32 (33 KB)",
+   "warmup": 5,
+   "iterations": 20,
+   "mean_ms": 0.33938949999999996,
+   "std_ms": 0.057300437997889676,
+   "min_ms": 0.252042,
+   "work": [
+    0.032768,
+    "MB"
+   ]
+  },
+  {
+   "name": "decode (KV cache)",
+   "backend": "Metal \u00b7 Apple M1 Pro",
+   "config": "tiny prompt 64 + 64 new",
+   "warmup": 5,
+   "iterations": 20,
+   "mean_ms": 146.607742,
+   "std_ms": 4.101714902825545,
+   "min_ms": 141.815792,
+   "work": [
+    64.0,
+    "tok"
+   ]
+  },
+  {
+   "name": "decode (no cache)",
+   "backend": "Metal \u00b7 Apple M1 Pro",
+   "config": "tiny prompt 64 + 64 new",
+   "warmup": 5,
+   "iterations": 20,
+   "mean_ms": 287.56414980000005,
+   "std_ms": 0.28068884819131246,
+   "min_ms": 287.13483299999996,
+   "work": [
+    64.0,
+    "tok"
+   ]
+  },
+  {
+   "name": "checkpoint save (weights)",
+   "backend": "Metal \u00b7 Apple M1 Pro",
+   "config": "tiny (55 MB)",
+   "warmup": 5,
+   "iterations": 20,
+   "mean_ms": 34.37841633333333,
+   "std_ms": 0.572821482501215,
+   "min_ms": 33.893874999999994,
+   "work": [
+    55.074304,
+    "MB"
+   ]
+  },
+  {
+   "name": "checkpoint load (weights)",
+   "backend": "Metal \u00b7 Apple M1 Pro",
+   "config": "tiny (55 MB)",
+   "warmup": 5,
+   "iterations": 20,
+   "mean_ms": 258.5035413333333,
+   "std_ms": 1.1582171839249098,
+   "min_ms": 257.195458,
+   "work": [
+    55.074304,
+    "MB"
+   ]
+  },
+  {
+   "name": "matmul",
+   "backend": "CPU \u00b7 Burn Flex (10 threads, SIMD, Apple AMX)",
+   "config": "512\u00d7512\u00b7512\u00d7512 f32",
+   "warmup": 5,
+   "iterations": 20,
+   "mean_ms": 0.4588481,
+   "std_ms": 0.13175698609254086,
+   "min_ms": 0.325042,
+   "work": [
+    0.268435456,
+    "GFLOP"
+   ]
+  },
+  {
+   "name": "matmul",
+   "backend": "CPU \u00b7 Burn Flex (10 threads, SIMD, Apple AMX)",
+   "config": "1024\u00d71024\u00b71024\u00d71024 f32",
+   "warmup": 5,
+   "iterations": 20,
+   "mean_ms": 2.2015021000000004,
+   "std_ms": 0.08657337586631356,
+   "min_ms": 2.065666,
+   "work": [
+    2.147483648,
+    "GFLOP"
+   ]
+  },
+  {
+   "name": "matmul",
+   "backend": "CPU \u00b7 Burn Flex (10 threads, SIMD, Apple AMX)",
+   "config": "2048\u00d72048\u00b72048\u00d72048 f32",
+   "warmup": 5,
+   "iterations": 20,
+   "mean_ms": 13.714829149999996,
+   "std_ms": 0.24243969158581985,
+   "min_ms": 13.22,
+   "work": [
+    17.179869184,
+    "GFLOP"
+   ]
+  },
+  {
+   "name": "attention (causal, fwd)",
+   "backend": "CPU \u00b7 Burn Flex (10 threads, SIMD, Apple AMX)",
+   "config": "B8 H6 T256 Dh64",
+   "warmup": 5,
+   "iterations": 20,
+   "mean_ms": 2.3391937,
+   "std_ms": 0.09054276069631416,
+   "min_ms": 2.205666,
+   "work": [
+    0.402653184,
+    "GFLOP"
+   ]
+  },
+  {
+   "name": "attention (causal, fwd)",
+   "backend": "CPU \u00b7 Burn Flex (10 threads, SIMD, Apple AMX)",
+   "config": "B8 H6 T512 Dh64",
+   "warmup": 5,
+   "iterations": 20,
+   "mean_ms": 8.2774852,
+   "std_ms": 0.15722866532493376,
+   "min_ms": 7.966915999999999,
+   "work": [
+    1.610612736,
+    "GFLOP"
+   ]
+  },
+  {
+   "name": "forward",
+   "backend": "CPU \u00b7 Burn Flex (10 threads, SIMD, Apple AMX)",
+   "config": "tiny B4 T256",
+   "warmup": 5,
+   "iterations": 20,
+   "mean_ms": 96.27748965,
+   "std_ms": 2.5509247355987443,
+   "min_ms": 92.57441700000001,
+   "work": [
+    1024.0,
+    "tok"
+   ]
+  },
+  {
+   "name": "train step (fwd+bwd+AdamW)",
+   "backend": "CPU \u00b7 Burn Flex (10 threads, SIMD, Apple AMX)",
+   "config": "tiny 13.767552M params B4 T256",
+   "warmup": 3,
+   "iterations": 3,
+   "mean_ms": 417.55756933333333,
+   "std_ms": 1.1404792492200488,
+   "min_ms": 416.203459,
+   "work": [
+    1024.0,
+    "tok"
+   ]
+  },
+  {
+   "name": "upload batch (host\u2192device)",
+   "backend": "CPU \u00b7 Burn Flex (10 threads, SIMD, Apple AMX)",
+   "config": "8\u00d7256 i64 (16 KB)",
+   "warmup": 5,
+   "iterations": 20,
+   "mean_ms": 0.0021335000000000004,
+   "std_ms": 8.802698449907283e-05,
+   "min_ms": 0.002,
+   "work": [
+    0.016384,
+    "MB"
+   ]
+  },
+  {
+   "name": "read logits (device\u2192host)",
+   "backend": "CPU \u00b7 Burn Flex (10 threads, SIMD, Apple AMX)",
+   "config": "1\u00d78192 f32 (33 KB)",
+   "warmup": 5,
+   "iterations": 20,
+   "mean_ms": 0.0014437500000000002,
+   "std_ms": 0.00022137657396391333,
+   "min_ms": 0.001291,
+   "work": [
+    0.032768,
+    "MB"
+   ]
+  },
+  {
+   "name": "decode (KV cache)",
+   "backend": "CPU \u00b7 Burn Flex (10 threads, SIMD, Apple AMX)",
+   "config": "tiny prompt 64 + 64 new",
+   "warmup": 5,
+   "iterations": 20,
+   "mean_ms": 108.5312246,
+   "std_ms": 0.6929004657653491,
+   "min_ms": 107.876541,
+   "work": [
+    64.0,
+    "tok"
+   ]
+  },
+  {
+   "name": "decode (no cache)",
+   "backend": "CPU \u00b7 Burn Flex (10 threads, SIMD, Apple AMX)",
+   "config": "tiny prompt 64 + 64 new",
+   "warmup": 5,
+   "iterations": 20,
+   "mean_ms": 929.6791917999999,
+   "std_ms": 3.972475339138069,
+   "min_ms": 922.936333,
+   "work": [
+    64.0,
+    "tok"
+   ]
+  },
+  {
+   "name": "checkpoint save (weights)",
+   "backend": "CPU \u00b7 Burn Flex (10 threads, SIMD, Apple AMX)",
+   "config": "tiny (55 MB)",
+   "warmup": 5,
+   "iterations": 20,
+   "mean_ms": 34.598624666666666,
+   "std_ms": 0.5365245026851546,
+   "min_ms": 33.850083000000005,
+   "work": [
+    55.074304,
+    "MB"
+   ]
+  },
+  {
+   "name": "checkpoint load (weights)",
+   "backend": "CPU \u00b7 Burn Flex (10 threads, SIMD, Apple AMX)",
+   "config": "tiny (55 MB)",
+   "warmup": 5,
+   "iterations": 20,
+   "mean_ms": 222.1735553333333,
+   "std_ms": 1.4805109750626417,
+   "min_ms": 220.62895799999998,
+   "work": [
+    55.074304,
+    "MB"
+   ]
+  },
+  {
+   "name": "data loading (pretrain batch)",
+   "backend": "host",
+   "config": "B16 T512 mmap",
+   "warmup": 5,
+   "iterations": 20,
+   "mean_ms": 0.014296664999999995,
+   "std_ms": 0.0034780939482387495,
+   "min_ms": 0.010792,
+   "work": [
+    8192.0,
+    "tok"
+   ]
+  },
+  {
+   "name": "tokenizer encode",
+   "backend": "host",
+   "config": "166 KB text, vocab 8192",
+   "warmup": 5,
+   "iterations": 20,
+   "mean_ms": 1.9105002499999997,
+   "std_ms": 0.0536729600104885,
+   "min_ms": 1.868125,
+   "work": [
+    0.16648,
+    "MB"
+   ]
+  }
+ ],
+ "memory": [
+  {
+   "backend": "Metal \u00b7 Apple M1 Pro",
+   "when": "before model benchmarks",
+   "gpu_in_use_bytes": 370327552,
+   "process_rss_bytes": 103612416
+  },
+  {
+   "backend": "Metal \u00b7 Apple M1 Pro",
+   "when": "after training-step benchmark",
+   "gpu_in_use_bytes": 2944843776,
+   "process_rss_bytes": 280723456
+  },
+  {
+   "backend": "CPU \u00b7 Burn Flex (10 threads, SIMD, Apple AMX)",
+   "when": "before model benchmarks",
+   "gpu_in_use_bytes": 577585152,
+   "process_rss_bytes": 544407552
+  },
+  {
+   "backend": "CPU \u00b7 Burn Flex (10 threads, SIMD, Apple AMX)",
+   "when": "after training-step benchmark",
+   "gpu_in_use_bytes": 100843520,
+   "process_rss_bytes": 950976512
+  }
+ ],
+ "unix": 1794278722
+}

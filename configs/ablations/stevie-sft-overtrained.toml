@@ -1,0 +1,53 @@
+# Ablation: STEVIE's fine-tuning without validation-based selection.
+#
+# Identical to configs/training/stevie-sft.toml (same pretrained start, hyperparameters and seed)
+# except that it trains for 200 steps (~18 epochs) with no early stopping, and evaluation uses
+# the final checkpoint instead of the best one. Used in docs/evaluation.md to show what
+# validation-based selection avoids: memorising the 628 training conversations.
+#
+#   glimmer train --config configs/ablations/stevie-sft-overtrained.toml
+#   glimmer evaluate --model stevie --model runs/<this run>/checkpoints/final
+[run]
+name = "ablation-sft-overtrained"
+stage = "sft"
+seed = 7
+backend = "auto"
+
+[model]
+dropout = 0.02
+
+[data]
+dataset = "stevie-sft"
+
+[init]
+from_checkpoint = "run:stevie-pretrain"
+
+[optimizer]
+kind = "adamw"
+lr = 3.08e-4
+min_lr = 3.08e-5
+weight_decay = 0.106
+beta1 = 0.9
+beta2 = 0.95
+grad_clip = 1.0
+
+[schedule]
+kind = "cosine"
+warmup_steps = 5
+max_steps = 200
+
+[batch]
+batch_size = 8
+grad_accum = 1
+
+[eval]
+every = 20
+batches = 8
+sample_prompts = false
+
+[checkpoint]
+every = 0
+keep_last = 1
+
+[early_stopping]
+patience = 0
