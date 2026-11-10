@@ -740,14 +740,14 @@ fn models(f: &mut Frame, area: Rect, app: &App) {
 // ── Datasets ────────────────────────────────────────────────────────────────────────────────
 
 fn datasets(f: &mut Frame, area: Rect, app: &App) {
-    let [left, right] = Layout::horizontal([Constraint::Length(34), Constraint::Min(30)]).areas(area);
+    let [left, right] = Layout::horizontal([Constraint::Length(40), Constraint::Min(30)]).areas(area);
     let items: Vec<ListItem> = app
         .datasets
         .iter()
         .map(|(n, m)| {
             let detail = m
                 .as_ref()
-                .map(|m| format!("{:?} · {}", m.kind, format_count(m.total_tokens())).to_lowercase())
+                .map(|m| format!("{} · {} tok", format!("{:?}", m.kind).to_lowercase(), format_count(m.total_tokens())))
                 .unwrap_or_else(|_| "error".into());
             ListItem::new(Line::from(vec![
                 Span::styled(format!("{n:<16}"), bold()),
@@ -771,9 +771,11 @@ fn datasets(f: &mut Frame, area: Rect, app: &App) {
         lines.push(Line::raw(""));
         lines.push(kv("tokenizer", format!("{} (vocab {})", m.tokenizer, m.vocab_size)));
         lines.push(kv("split seed", m.split.seed.to_string()));
-        let rows: Vec<Row> = m
-            .splits
+        lines.push(kv("created", glimmer_core::time::iso8601(m.created_unix)));
+        let order = ["train", "val", "test"];
+        let rows: Vec<Row> = order
             .iter()
+            .filter_map(|k| m.splits.get(*k).map(|s| (k.to_string(), s)))
             .map(|(k, s)| {
                 Row::new(vec![
                     k.clone(),
@@ -784,7 +786,7 @@ fn datasets(f: &mut Frame, area: Rect, app: &App) {
             })
             .collect();
         let [info, table, src] =
-            Layout::vertical([Constraint::Length(6), Constraint::Length(rows.len() as u16 + 3), Constraint::Min(4)])
+            Layout::vertical([Constraint::Length(8), Constraint::Length(rows.len() as u16 + 3), Constraint::Min(4)])
                 .areas(right);
         f.render_widget(Paragraph::new(lines).block(panel("dataset", false)), info);
         f.render_widget(
@@ -800,11 +802,24 @@ fn datasets(f: &mut Frame, area: Rect, app: &App) {
         for s in &m.sources {
             sl.push(Line::from(vec![Span::styled("• ", accent()), Span::styled(s.name.clone(), bold())]));
             sl.push(kv("  licence", s.license.clone()));
+            let docs: usize = s.documents.values().sum();
+            let toks: u64 = s.tokens.values().sum();
+            sl.push(kv("  contributes", format!("{docs} docs · {} tokens (all splits)", format_count(toks))));
             sl.push(kv("  weight", format!("{}", s.weight)));
             sl.push(Line::from(Span::styled(format!("  {}", s.provenance), faint())));
             sl.push(Line::raw(""));
         }
-        f.render_widget(Paragraph::new(sl).wrap(Wrap { trim: true }).block(panel("sources & licences", false)), src);
+        sl.push(Line::from(Span::styled("preprocessing", bold())));
+        for (i, p) in m.preprocessing.iter().enumerate() {
+            sl.push(Line::from(vec![
+                Span::styled(format!("  {}. ", i + 1), accent()),
+                Span::styled(p.clone(), theme::muted()),
+            ]));
+        }
+        f.render_widget(
+            Paragraph::new(sl).wrap(Wrap { trim: true }).block(panel("sources, licences & processing", false)),
+            src,
+        );
     } else {
         f.render_widget(
             Paragraph::new(Span::styled("run `glimmer data pipeline` to prepare datasets", faint()))
@@ -1026,11 +1041,45 @@ fn hardware(f: &mut Frame, area: Rect, app: &App) {
             lines.push(Line::raw(""));
             lines.push(kv_styled("recommended", preset, accent()));
             lines.push(Line::from(Span::styled(why, faint())));
+            lines.push(Line::raw(""));
+            lines.push(Line::from(Span::styled("model presets (vocab 8192)", bold())));
+            for name in glimmer_core::config::PRESETS {
+                let c =
+                    glimmer_core::ModelConfig { vocab_size: 8192, ..glimmer_core::ModelConfig::preset(name).unwrap() };
+                let mark = if name == preset { "  ◂ recommended" } else { "" };
+                lines.push(Line::from(vec![
+                    Span::styled(format!("  {name:<7}"), if name == preset { accent() } else { Style::new().fg(TEXT) }),
+                    Span::styled(
+                        format!(
+                            "{:>6} params · {} layers · d_model {} · ctx {}",
+                            format_count(c.param_count() as u64),
+                            c.n_layers,
+                            c.d_model,
+                            c.context_length
+                        ),
+                        theme::muted(),
+                    ),
+                    Span::styled(mark, accent()),
+                ]));
+            }
         }
     }
     f.render_widget(Paragraph::new(lines).wrap(Wrap { trim: true }).block(panel("hardware", true)), left);
 
-    let [spark, live] = Layout::vertical([Constraint::Length(8), Constraint::Min(4)]).areas(right);
+    let [spark, mem_spark, live] =
+        Layout::vertical([Constraint::Length(8), Constraint::Length(8), Constraint::Min(4)]).areas(right);
+    let mem: Vec<u64> = app.gpu_mem_history.iter().copied().collect();
+    if !mem.is_empty() {
+        let peak = mem.iter().copied().max().unwrap_or(1).max(1);
+        f.render_widget(
+            Sparkline::default()
+                .block(panel("gpu memory in use (MiB)", false))
+                .data(&mem)
+                .max(peak + peak / 5)
+                .style(Style::new().fg(BLUE)),
+            mem_spark,
+        );
+    }
     let data: Vec<u64> = app.gpu_history.iter().copied().collect();
     if data.is_empty() {
         f.render_widget(

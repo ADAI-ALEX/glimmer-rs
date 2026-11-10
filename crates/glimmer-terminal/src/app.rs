@@ -135,6 +135,8 @@ pub struct App {
     mon_rx: Receiver<SystemSample>,
     pub sys: SystemSample,
     pub gpu_history: VecDeque<u64>,
+    /// GPU-resident memory history in MiB.
+    pub gpu_mem_history: VecDeque<u64>,
     pub models: Vec<RegisteredModel>,
     pub model_sel: usize,
     pub datasets: Vec<(String, anyhow::Result<DatasetManifest>)>,
@@ -191,6 +193,7 @@ impl App {
             mon_rx: workers::spawn_monitor(),
             sys: SystemSample::default(),
             gpu_history: VecDeque::with_capacity(120),
+            gpu_mem_history: VecDeque::with_capacity(120),
             models: Vec::new(),
             model_sel: 0,
             datasets: Vec::new(),
@@ -342,6 +345,12 @@ impl App {
                     self.gpu_history.pop_front();
                 }
                 self.gpu_history.push_back(u as u64);
+            }
+            if let Some(m) = s.gpu.and_then(|g| g.in_use_memory) {
+                if self.gpu_mem_history.len() == 120 {
+                    self.gpu_mem_history.pop_front();
+                }
+                self.gpu_mem_history.push_back(m >> 20);
             }
             self.sys = s;
         }
