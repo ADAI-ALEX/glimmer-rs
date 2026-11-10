@@ -4,6 +4,7 @@ mod bench_cmd;
 mod data_cmd;
 mod eval_cmd;
 mod model_cmd;
+mod plot;
 mod style;
 mod train_cmd;
 
@@ -39,8 +40,11 @@ enum Command {
     Sources,
     /// Train a model headlessly (pretraining or fine-tuning).
     Train(train_cmd::TrainArgs),
-    /// List training runs.
-    Runs,
+    /// List training runs, or plot one (`glimmer runs plot <run> --out curve.svg`).
+    Runs {
+        #[command(subcommand)]
+        action: Option<RunsCmd>,
+    },
     /// Benchmark kernels, training and inference on the available backends.
     Bench(bench_cmd::BenchArgs),
     /// Inspect hardware and verify compute backends.
@@ -69,6 +73,19 @@ enum Command {
     Tune(model_cmd::TuneArgs),
 }
 
+#[derive(Subcommand, Debug)]
+enum RunsCmd {
+    /// Render a run's training and validation loss to an SVG.
+    Plot {
+        /// Run directory or run id under runs/.
+        run: String,
+        #[arg(long)]
+        out: String,
+        #[arg(long)]
+        title: Option<String>,
+    },
+}
+
 fn main() -> Result<()> {
     let cli = Cli::parse();
     let ws = Workspace::discover()?;
@@ -78,7 +95,19 @@ fn main() -> Result<()> {
         Some(Command::Datasets(c)) => data_cmd::run_datasets(&ws, c),
         Some(Command::Sources) => data_cmd::run_sources(&ws),
         Some(Command::Train(a)) => train_cmd::run(&ws, a),
-        Some(Command::Runs) => train_cmd::list_runs(&ws),
+        Some(Command::Runs { action: None }) => train_cmd::list_runs(&ws),
+        Some(Command::Runs { action: Some(RunsCmd::Plot { run, out, title }) }) => {
+            let dir = if ws.resolve(&run).join("metrics.jsonl").is_file() {
+                ws.resolve(&run)
+            } else {
+                ws.runs_dir().join(&run)
+            };
+            let title =
+                title.unwrap_or_else(|| dir.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default());
+            plot::plot_run(&dir, &title, &ws.resolve(&out))?;
+            println!("{}", ws.resolve(&out).display());
+            Ok(())
+        }
         Some(Command::Bench(a)) => bench_cmd::run(&ws, a),
         Some(Command::Doctor(a)) => bench_cmd::doctor(&ws, a),
         Some(Command::Tui { backend, screen, model }) => {
